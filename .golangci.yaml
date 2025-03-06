@@ -1,0 +1,42 @@
+run:
+  timeout: 5m
+  tests: false        
+  concurrency: 2
+
+linters:
+  enable:
+    - govet           
+    - errcheck        
+    - staticcheck     
+    - gosimple        
+    - unused          
+    - typecheck       
+    - ineffassign     
+    - gofmt           
+    - misspell        
+    - gocritic        
+    - whitespace      
+
+linters-settings:
+  golint:
+    min-confidence: 0.8
+  govet:
+    shadow: true
+  gofmt:
+    simplify: true
+
+issues:
+  max-same-issues: 5
+  exclude-use-default: true
+
+  exclude:
+    - "error return value not checked"
+    
+skip-dirs:
+  - vendor
+
+skip-files:
+  - "*.pb.go"
+
+output:
+  formats: colored-line-number
