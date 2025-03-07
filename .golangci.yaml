@@ -2,6 +2,10 @@ run:
   timeout: 5m
   tests: false        
   concurrency: 2
+  skip-dirs:
+    - vendor
+  skip-files:
+    - "*.pb.go"
 
 linters:
   enable:
@@ -16,27 +20,18 @@ linters:
     - misspell        
     - gocritic        
     - whitespace      
+    - shadow           # Use shadow as a standalone linter
 
 linters-settings:
-  golint:
-    min-confidence: 0.8
-  govet:
-    shadow: true
   gofmt:
     simplify: true
 
 issues:
   max-same-issues: 5
   exclude-use-default: true
-
   exclude:
     - "error return value not checked"
-    
-skip-dirs:
-  - vendor
-
-skip-files:
-  - "*.pb.go"
 
 output:
-  formats: colored-line-number
+  formats:
+    - colored-line-number
