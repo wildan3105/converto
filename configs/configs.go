@@ -14,7 +14,6 @@ type Config struct {
 	Environment                string `envconfig:"ENVIRONMENT" default:"local"`
 	MongoURI                   string `envconfig:"MONGO_URI" required:"true"`
 	MongoDbName                string `envconfig:"DB_NAME" required:"true"`
-	ConversionCollectionName   string `envconfig:"CONVERSION_COLLECTION_NAME" required:"true"`
 	RabbitMQURI                string `envconfig:"RABBITMQ_URI" required:"true"`
 	RabbitMQManagementURI      string `envconfig:"RABBITMQ_MANAGEMENT_URI" required:"true"`
 	RabbitMQManagementUser     string `envconfig:"RABBITMQ_MANAGEMENT_USER" required:"true"`

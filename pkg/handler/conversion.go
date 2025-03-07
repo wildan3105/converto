@@ -17,7 +17,6 @@ func NewConversionHandler(service *service.ConversionService) *ConversionHandler
 	}
 }
 
-// GetConversions handles GET /api/v1/conversions
 func (h *ConversionHandler) GetConversions(c *fiber.Ctx) error {
 	conversions, err := h.conversionService.ListConversions(context.Background(), nil, 5, 5)
 	if err != nil {
