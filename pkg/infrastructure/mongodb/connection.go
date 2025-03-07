@@ -18,7 +18,7 @@ var log = logger.GetInstance()
 
 // ConnectDB initializes a MongoDB connection and returns the client
 // It includes reconnection logic that retries up to 5 times with a 5-second interval
-func ConnectDB(uri string) (*mongo.Client, error) {
+func Connect(uri string) (*mongo.Client, error) {
 	var client *mongo.Client
 	var err error
 
@@ -57,11 +57,6 @@ func Ping(client *mongo.Client) error {
 	defer cancel()
 
 	return client.Ping(ctx, nil)
-}
-
-// GetConversionCollection returns the MongoDB collection for conversions
-func GetConversionCollection() *mongo.Collection {
-	return MongoClient.Database(config.AppConfig.MongoDbName).Collection("conversions")
 }
 
 // DisconnectDB disconnects from MongoDB
