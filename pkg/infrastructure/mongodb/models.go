@@ -38,16 +38,15 @@ type ConversionData struct {
 // JobMetadata holds information about the job source and message queue
 type JobMetadata struct {
 	Source    JobSource `bson:"source" json:"source"`
-	QueueID   string    `bson:"queue_id" json:"queue_id,omitempty"`
+	JobID     string    `bson:"queue_id" json:"queue_id,omitempty"`
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }
 
 // Conversion represents the complete document stored in the database
 type Conversion struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	ConversionID string             `bson:"conversion_id" json:"conversion_id"`
-	File         FileMetadata       `bson:"file" json:"file"`
-	Conversion   ConversionData     `bson:"conversion" json:"conversion"`
-	Job          JobMetadata        `bson:"job" json:"job"`
+	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	File       FileMetadata       `bson:"file" json:"file"`
+	Conversion ConversionData     `bson:"conversion" json:"conversion"`
+	Job        JobMetadata        `bson:"job" json:"job"`
 }

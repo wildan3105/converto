@@ -14,10 +14,11 @@ import (
 
 var MongoClient *mongo.Client
 
+var log = logger.GetInstance()
+
 // ConnectDB initializes a MongoDB connection and returns the client
 // It includes reconnection logic that retries up to 5 times with a 5-second interval
 func ConnectDB(uri string) (*mongo.Client, error) {
-	logger := logger.GetInstance()
 	var client *mongo.Client
 	var err error
 
@@ -34,15 +35,15 @@ func ConnectDB(uri string) (*mongo.Client, error) {
 		cancel()
 
 		if err == nil {
-			logger.Info("Connected to MongoDB")
+			log.Info("Connected to MongoDB")
 			MongoClient = client
 			return client, nil
 		}
 
-		logger.Warn("Failed to connect to MongoDB (attempt %d): %v\n", attempt, err)
+		log.Warn("Failed to connect to MongoDB (attempt %d): %v\n", attempt, err)
 
 		if attempt < 5 {
-			logger.Info("Retrying in 5 seconds...")
+			log.Info("Retrying in 5 seconds...")
 			time.Sleep(5 * time.Second)
 		}
 	}
@@ -65,8 +66,6 @@ func GetConversionCollection() *mongo.Collection {
 
 // DisconnectDB disconnects from MongoDB
 func DisconnectDB(client *mongo.Client) error {
-	logger := logger.GetInstance()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -74,6 +73,6 @@ func DisconnectDB(client *mongo.Client) error {
 		return fmt.Errorf("failed to disconnect MongoDB: %w", err)
 	}
 
-	logger.Info("Disconnected from MongoDB")
+	log.Info("Disconnected from MongoDB")
 	return nil
 }
