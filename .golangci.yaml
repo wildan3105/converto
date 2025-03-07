@@ -20,7 +20,7 @@ linters:
     - misspell        
     - gocritic        
     - whitespace      
-    - shadow           # Use shadow as a standalone linter
+    - shadow
 
 linters-settings:
   gofmt:
@@ -31,7 +31,3 @@ issues:
   exclude-use-default: true
   exclude:
     - "error return value not checked"
-
-output:
-  format:
-    - colored-line-number
