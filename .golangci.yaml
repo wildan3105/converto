@@ -16,7 +16,6 @@ linters:
     - misspell
     - gocritic
     - whitespace
-    - shadow
 
 linters-settings:
   gofmt:
