@@ -6,6 +6,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// JobSource represents the source of the job
+type JobSource string
+
+const (
+	JobSourceAPI JobSource = "API"
+	JobSourceCLI JobSource = "CLI"
+)
+
 // FileMetadata represents metadata for both original and converted files
 type FileMetadata struct {
 	OriginalName  string `bson:"original_name" json:"original_name"`
@@ -29,7 +37,7 @@ type ConversionData struct {
 
 // JobMetadata holds information about the job source and message queue
 type JobMetadata struct {
-	Source    string    `bson:"source" json:"source"`
+	Source    JobSource `bson:"source" json:"source"`
 	QueueID   string    `bson:"queue_id" json:"queue_id,omitempty"`
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
