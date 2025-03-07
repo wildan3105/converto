@@ -25,6 +25,3 @@ linters-settings:
 issues:
   max-same-issues: 10
   exclude-use-default: true
-
-output:
-  format: github-actions # Special format for GitHub Actions annotations
