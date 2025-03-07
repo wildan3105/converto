@@ -33,5 +33,5 @@ issues:
     - "error return value not checked"
 
 output:
-  formats:
+  format:
     - colored-line-number
