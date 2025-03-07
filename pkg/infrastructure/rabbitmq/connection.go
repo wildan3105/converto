@@ -119,7 +119,6 @@ func (cm *ConnectionManager) Close() {
 
 // Ping checks if the connection to RabbitMQ is still open and functioning correctly.
 func (cm *ConnectionManager) Ping() error {
-
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 
@@ -201,7 +200,6 @@ func (cm *ConnectionManager) DeleteQueue(queueName string) error {
 
 // CheckExchangeExists checks if the exchange exists
 func (cm *ConnectionManager) CheckExchangeExists(exchangeName string) (bool, error) {
-
 	err := cm.channel.ExchangeDeclarePassive(
 		exchangeName,
 		"direct", // same type as when created
@@ -223,7 +221,6 @@ func (cm *ConnectionManager) CheckExchangeExists(exchangeName string) (bool, err
 
 // CheckQueueExists checks if the queue exists
 func (cm *ConnectionManager) CheckQueueExists(queueName string) (bool, error) {
-
 	_, err := cm.channel.QueueDeclarePassive(
 		queueName, // name
 		true,      // durable
@@ -244,7 +241,6 @@ func (cm *ConnectionManager) CheckQueueExists(queueName string) (bool, error) {
 
 // CheckQueueBinding checks if a queue is bound to an exchange using a routing key
 func (cm *ConnectionManager) CheckQueueBinding(exchangeName, queueName, routingKey string) (bool, error) {
-
 	err := cm.channel.QueueBind(
 		queueName,    // queue name
 		routingKey,   // routing key
