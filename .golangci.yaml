@@ -28,9 +28,3 @@ issues:
 
 output:
   format: github-actions # Special format for GitHub Actions annotations
-
-run:
-  skip-dirs:
-    - vendor
-  skip-files:
-    - "*.pb.go"
