@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildan3105/converto/pkg/api/schema"
+	"github.com/wildan3105/converto/pkg/domain"
 	"github.com/wildan3105/converto/pkg/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -76,7 +77,29 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 }
 
 func (h *ConversionHandler) GetConversions(c *fiber.Ctx) error {
-	conversions, err := h.conversionService.ListConversions(context.Background(), nil, 5, 5)
+	status := c.Query("status")
+
+	// Validate the status if provided
+	if status != "" && !IsValidConversionStatus(status) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid status. Must be one of 'pending', 'in_progress', 'completed', 'failed'",
+		})
+	}
+
+	page := c.QueryInt("page", 1)
+	if page < 1 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid page value. Must at least be 1",
+		})
+	}
+
+	limit := c.QueryInt("limit", 10)
+	if limit < 1 || limit > 20 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid limit value. Must be below 21 and above 0",
+		})
+	}
+	conversions, err := h.conversionService.ListConversions(context.Background(), status, page, limit)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to fetch conversions",
@@ -109,4 +132,14 @@ func (h *ConversionHandler) GetConversionByID(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(conversion)
+}
+
+// IsValidConversionStatus checks if the provided status is a valid ConversionStatus
+func IsValidConversionStatus(status string) bool {
+	switch domain.ConversionStatus(status) {
+	case domain.ConversionPending, domain.ConversionInProgress, domain.ConversionCompleted, domain.ConversionFailed:
+		return true
+	default:
+		return false
+	}
 }

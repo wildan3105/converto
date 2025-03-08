@@ -21,12 +21,6 @@ type CreateConversionResponse struct {
 	Message string                  `json:"message"`
 }
 
-type GetConversionsQuery struct {
-	Status domain.ConversionStatus `query:"status"`
-	Limit  int                     `query:"limit"`
-	Page   int                     `query:"page"`
-}
-
 type ConversionResponse struct {
 	ID               string                  `json:"id"`
 	Status           domain.ConversionStatus `json:"status"`

@@ -9,7 +9,6 @@ import (
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/domain"
 	"github.com/wildan3105/converto/pkg/repository"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type ConversionService struct {
@@ -58,9 +57,27 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 	}, nil
 }
 
-// ListConversions fetches conversions from the repository
-func (s *ConversionService) ListConversions(ctx context.Context, filter bson.M, limit, offset int64) ([]*domain.Conversion, error) {
-	return s.repo.ListConversions(ctx, filter, limit, offset)
+// ListConversions fetches conversions from the repository and maps them to the response schema
+func (s *ConversionService) ListConversions(ctx context.Context, status string, page, limit int) ([]schema.ConversionResponse, error) {
+	offset := (page - 1) * limit
+
+	conversions, err := s.repo.ListConversions(ctx, status, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]schema.ConversionResponse, len(conversions))
+	for i, conversion := range conversions {
+		responses[i] = schema.ConversionResponse{
+			ID:               conversion.ID,
+			Status:           conversion.Conversion.Status,
+			Progress:         conversion.Conversion.Progress,
+			OriginalFileURL:  conversion.File.OriginalPath,
+			ConvertedFileURL: conversion.File.ConvertedPath,
+		}
+	}
+
+	return responses, nil
 }
 
 // GetConversionByID fetches conversion by ID from the repository
