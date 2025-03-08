@@ -6,17 +6,23 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/domain"
+	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
 	"github.com/wildan3105/converto/pkg/repository"
 )
 
 type ConversionService struct {
-	repo repository.ConversionRepository
+	repo      repository.ConversionRepository
+	publisher *rabbitmq.Publisher
 }
 
-func NewConversionService(repo repository.ConversionRepository) *ConversionService {
-	return &ConversionService{repo: repo}
+func NewConversionService(repo repository.ConversionRepository, publisher *rabbitmq.Publisher) *ConversionService {
+	return &ConversionService{
+		repo:      repo,
+		publisher: publisher,
+	}
 }
 
 // CreateConversion creates a conversion
@@ -26,9 +32,7 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 	conversionPayload := &domain.Conversion{
 		File: domain.FileMetadata{
 			OriginalName:  req.FileName,
-			OriginalPath:  "path-original",   // will be fetched from the stored file
-			ConvertedName: convertedFileName, // will be fetched later
-			ConvertedPath: "path-converted",  // will be fetched later
+			ConvertedName: convertedFileName,
 			SizeInBytes:   req.FileSize,
 		},
 		Conversion: domain.ConversionData{
@@ -37,7 +41,7 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 			Status:       domain.ConversionPending,
 		},
 		Job: domain.ConversionJob{
-			JobID:     "1",
+			JobID:     uuid.NewString(),
 			Source:    domain.JobSourceAPI,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -45,6 +49,8 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 	}
 
 	res, err := s.repo.CreateConversion(ctx, conversionPayload)
+
+	// publish to rabbitmq
 
 	if err != nil {
 		return schema.CreateConversionResponse{}, err

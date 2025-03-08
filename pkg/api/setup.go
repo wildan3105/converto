@@ -9,6 +9,7 @@ import (
 	config "github.com/wildan3105/converto/configs"
 	"github.com/wildan3105/converto/pkg/handler"
 	"github.com/wildan3105/converto/pkg/infrastructure/mongodb"
+	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
 	"github.com/wildan3105/converto/pkg/repository"
 	"github.com/wildan3105/converto/pkg/service"
 )
@@ -28,8 +29,15 @@ func Setup() *fiber.App {
 		log.Fatal("Failed to connect to MongoDB: ", err)
 	}
 
+	connManager, err := rabbitmq.NewConnectionManager(config.AppConfig.RabbitMQURI)
+	if err != nil {
+		log.Fatalf("Failed to initialize RabbitMQ: %v", err)
+	}
+
+	publisher := rabbitmq.NewPublisher(connManager)
+
 	conversionRepo := repository.NewMongoRepository(mongoClient, config.AppConfig.MongoDbName)
-	conversionService := service.NewConversionService(conversionRepo)
+	conversionService := service.NewConversionService(conversionRepo, publisher)
 	healthService := service.NewHealthService(mongoClient)
 
 	conversionHandler := handler.NewConversionHandler(conversionService)
