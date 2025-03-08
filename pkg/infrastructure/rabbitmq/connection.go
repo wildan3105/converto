@@ -78,6 +78,13 @@ func (cm *ConnectionManager) connect() error {
 	cm.channel = ch
 	cm.notifyClose = make(chan *amqp091.Error)
 	cm.conn.NotifyClose(cm.notifyClose)
+
+	// Setup exchange, queue, and binding
+	if err := cm.SetupExchangeQueueBinding("conversion", "created", "conversion_queue"); err != nil {
+		log.Error("Failed to setup RabbitMQ components: %v", err)
+		return err
+	}
+
 	return nil
 }
 

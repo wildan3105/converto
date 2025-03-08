@@ -23,10 +23,35 @@ func NewPublisher(cm *ConnectionManager) *Publisher {
 		channel: cm.GetChannel(),
 	}
 
+	if err := p.enableConfirmMode(); err != nil {
+		log.Error("Failed to enable confirm mode: %v", err)
+	}
+
 	return p
 }
 
-// PublishConversionJob publishes a conversion job to RabbitMQ
+// enableConfirmMode sets the channel into confirm mode and attaches a listener to handle confirmation
+func (p *Publisher) enableConfirmMode() error {
+	err := p.channel.Confirm(false)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for confirmed := range p.channel.NotifyPublish(make(chan amqp091.Confirmation)) {
+			if confirmed.Ack {
+				log.Info("Message with delivery tag %d confirmed", confirmed.DeliveryTag)
+			} else {
+				log.Warn("Message with delivery tag %d failed", confirmed.DeliveryTag)
+			}
+		}
+	}()
+
+	log.Info("Enabling confirm mode")
+
+	return nil
+}
+
 func (p *Publisher) PublishConversionJob(ctx context.Context, job domain.ConversionJob, exchange, routingKey string) error {
 	channel := p.conn.GetChannel()
 
@@ -35,22 +60,34 @@ func (p *Publisher) PublishConversionJob(ctx context.Context, job domain.Convers
 		return fmt.Errorf("failed to marshal job: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	err = channel.PublishWithContext(
 		ctx,
 		exchange,
 		routingKey,
-		false, // mandatory
+		true,  // mandatory
 		false, // immediate
 		amqp091.Publishing{
-			ContentType: "application/json",
-			Body:        jobBytes,
-			Timestamp:   time.Now(),
+			DeliveryMode: amqp091.Persistent,
+			ContentType:  "application/json",
+			Body:         jobBytes,
+			Timestamp:    time.Now(),
 		},
 	)
 
 	if err != nil {
-		log.Warn("Failed to publish job: %v", err)
 		return err
+	}
+
+	select {
+	case confirm := <-channel.NotifyPublish(make(chan amqp091.Confirmation, 1)):
+		if !confirm.Ack {
+			return fmt.Errorf("failed to confirm publishing")
+		}
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 
 	log.Info("Published job %s to exchange %s with routing key %s", job.JobID, exchange, routingKey)

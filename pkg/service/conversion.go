@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/domain"
@@ -48,16 +49,21 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 		},
 	}
 
-	res, err := s.repo.CreateConversion(ctx, conversionPayload)
-
-	// publish to rabbitmq
+	id, err := s.repo.CreateConversion(ctx, conversionPayload)
 
 	if err != nil {
 		return schema.CreateConversionResponse{}, err
 	}
 
+	publishErr := s.publisher.PublishConversionJob(ctx, conversionPayload.Job, "conversion", "created")
+
+	if publishErr != nil {
+		log.Warn("Error when publishing %s", err)
+		return schema.CreateConversionResponse{}, err
+	}
+
 	return schema.CreateConversionResponse{
-		ID:      res,
+		ID:      id,
 		Status:  conversionPayload.Conversion.Status,
 		Message: "Conversion created successfully",
 	}, nil
