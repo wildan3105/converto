@@ -40,7 +40,11 @@ func Setup() *fiber.App {
 	api.Get("/health", healthHandler.Check)
 
 	v1 := api.Group("/v1")
+	v1.Post("/conversions", conversionHandler.CreateConversion)
 	v1.Get("/conversions", conversionHandler.GetConversions)
+	v1.Get("/conversions/:id", conversionHandler.GetConversionByID)
+	// v1.Get("/files/original/:conversionId", conversionHandler.GetOriginalFileByConversionId)
+	// v1.Get("/files/converted/:conversionId", conversionHandler.GetConvertedFileByConversionId)
 
 	return app
 }

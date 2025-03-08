@@ -6,7 +6,7 @@ type ConversionStatus string
 
 const (
 	ConversionPending    ConversionStatus = "pending"
-	ConversionInProgress ConversionStatus = "in-progress"
+	ConversionInProgress ConversionStatus = "in_progress"
 	ConversionCompleted  ConversionStatus = "completed"
 	ConversionFailed     ConversionStatus = "failed"
 )
