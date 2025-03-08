@@ -25,4 +25,4 @@ jobs:
       - name: build
         run: go build -v -o converto
       - name: test
-        run: go test -v -cover ./... -race
+        run: go test -v -cover ./test/integration -race

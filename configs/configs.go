@@ -16,8 +16,8 @@ type Config struct {
 	MongoDbName                string `envconfig:"DB_NAME" required:"true"`
 	RabbitMQURI                string `envconfig:"RABBITMQ_URI" required:"true"`
 	RabbitMQManagementURI      string `envconfig:"RABBITMQ_MANAGEMENT_URI" required:"true"`
-	RabbitMQManagementUser     string `envconfig:"RABBITMQ_MANAGEMENT_USER" required:"true"`
-	RabbitMQManagementPassword string `envconfig:"RABBITMQ_MANAGEMENT_PASSWORD" required:"true"`
+	RabbitMQManagementUser     string `envconfig:"RABBITMQ_MANAGEMENT_USER"`
+	RabbitMQManagementPassword string `envconfig:"RABBITMQ_MANAGEMENT_PASSWORD"`
 	RabbitMQManagementVHost    string `envconfig:"RABBITMQ_MANAGEMENT_VHOST" default:"/"`
 }
 

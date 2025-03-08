@@ -13,14 +13,14 @@ import (
 	"github.com/wildan3105/converto/pkg/logger"
 )
 
+var log = logger.GetInstance()
+
 // RestCmd is the command to run the REST API server
 var RestCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Run the REST API server",
 	Run: func(cmd *cobra.Command, args []string) {
-		logger := logger.GetInstance()
-
-		logger.Info("Starting REST API server...")
+		log.Info("Starting REST API server...")
 
 		app := api.Setup()
 
@@ -29,20 +29,20 @@ var RestCmd = &cobra.Command{
 
 		go func() {
 			if err := app.Listen(":" + config.AppConfig.Port); err != nil {
-				logger.Error("Server failed: %v", err)
+				log.Error("Server failed: %v", err)
 			}
 		}()
 
 		sig := <-done
-		logger.Info("Signal received: %s. Shutting down server gracefully...", sig)
+		log.Info("Signal received: %s. Shutting down server gracefully...", sig)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		if err := app.ShutdownWithContext(ctx); err != nil {
-			logger.Error("Server shutdown failed: %v", err)
+			log.Error("Server shutdown failed: %v", err)
 		}
 
-		logger.Info("Server exited gracefully")
+		log.Info("Server exited gracefully")
 	},
 }
