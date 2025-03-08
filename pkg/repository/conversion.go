@@ -14,7 +14,7 @@ import (
 
 // ConversionRepository defines database operations for conversions
 type ConversionRepository interface {
-	CreateConversion(ctx context.Context, conversion *domain.Conversion) error
+	CreateConversion(ctx context.Context, conversion *domain.Conversion) (string, error)
 	GetConversion(ctx context.Context, conversionID string) (*domain.Conversion, error)
 	UpdateConversion(ctx context.Context, conversionID string, updateData bson.M) error
 	ListConversions(ctx context.Context, filter bson.M, limit, offset int64) ([]*domain.Conversion, error)
@@ -33,13 +33,17 @@ func NewMongoRepository(mongoClient *mongo.Client, dbName string) *MongoConversi
 }
 
 // CreateConversion inserts a new conversion document
-func (r *MongoConversionRepository) CreateConversion(ctx context.Context, conversion *domain.Conversion) error {
+func (r *MongoConversionRepository) CreateConversion(ctx context.Context, conversion *domain.Conversion) (string, error) {
 	conversion.ID = primitive.NewObjectID().Hex()
 	conversion.Job.CreatedAt = time.Now()
 	conversion.Job.UpdatedAt = time.Now()
 
 	_, err := r.collection.InsertOne(ctx, conversion)
-	return err
+	if err != nil {
+		return "", err
+	}
+
+	return conversion.ID, nil
 }
 
 // GetConversionByID retrieves a conversion document by ID
