@@ -58,12 +58,12 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 }
 
 // ListConversions fetches conversions from the repository and maps them to the response schema
-func (s *ConversionService) ListConversions(ctx context.Context, status string, page, limit int) ([]schema.ConversionResponse, error) {
+func (s *ConversionService) ListConversions(ctx context.Context, status string, page, limit int) (schema.ListConversionsResponse, error) {
 	offset := (page - 1) * limit
 
 	conversions, err := s.repo.ListConversions(ctx, status, limit, offset)
 	if err != nil {
-		return nil, err
+		return schema.ListConversionsResponse{}, err
 	}
 
 	responses := make([]schema.ConversionResponse, len(conversions))
@@ -77,7 +77,13 @@ func (s *ConversionService) ListConversions(ctx context.Context, status string, 
 		}
 	}
 
-	return responses, nil
+	responseData := schema.ListConversionsResponse{
+		Page:  page,
+		Limit: limit,
+		Data:  responses,
+	}
+
+	return responseData, nil
 }
 
 // GetConversionByID fetches conversion by ID from the repository

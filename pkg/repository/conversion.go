@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/wildan3105/converto/pkg/domain"
@@ -51,11 +50,9 @@ func (r *MongoConversionRepository) CreateConversion(ctx context.Context, conver
 // GetConversionByID retrieves a conversion document by ID
 func (r *MongoConversionRepository) GetConversionByID(ctx context.Context, conversionID string) (*domain.Conversion, error) {
 	var conversion domain.Conversion
-	fmt.Println("conversion ID is", conversionID)
 	err := r.collection.FindOne(ctx, bson.M{"_id": conversionID}).Decode(&conversion)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			fmt.Println("goes here no documents")
 			return nil, nil
 		}
 		return nil, err

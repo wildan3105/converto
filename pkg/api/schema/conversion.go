@@ -21,6 +21,12 @@ type CreateConversionResponse struct {
 	Message string                  `json:"message"`
 }
 
+type ListConversionsResponse struct {
+	Page  int                  `json:"page"`
+	Limit int                  `json:"limit"`
+	Data  []ConversionResponse `json:"data"`
+}
+
 type ConversionResponse struct {
 	ID               string                  `json:"id"`
 	Status           domain.ConversionStatus `json:"status"`
