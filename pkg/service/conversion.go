@@ -58,7 +58,7 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 	publishErr := s.publisher.PublishConversionJob(ctx, conversionPayload.Job, "conversion", "created")
 
 	if publishErr != nil {
-		log.Warn("Error when publishing %s", err)
+		log.Warn("Error when publishing %v", err)
 		return schema.CreateConversionResponse{}, err
 	}
 

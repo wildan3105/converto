@@ -5,29 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/rabbitmq/amqp091-go"
-
 	"github.com/wildan3105/converto/pkg/domain"
 )
 
 // Consumer is responsible for consuming messages from RabbitMQ
 type Consumer struct {
-	conn    *ConnectionManager
-	channel *amqp091.Channel
+	conn *ConnectionManager
 }
 
 // NewConsumer creates a new Consumer
 func NewConsumer(cm *ConnectionManager) *Consumer {
-	c := &Consumer{
-		conn:    cm,
-		channel: cm.GetChannel(),
+	return &Consumer{
+		conn: cm,
 	}
-
-	return c
 }
 
-// Consume consumes messages from the given queue and processes them with the provided handler
-func (c *Consumer) Consume(ctx context.Context, queueName string, handler func(domain.ConversionJob) error) error {
+func (c *Consumer) Consume(ctx context.Context, queueName string) (<-chan domain.ConversionJob, error) {
 	channel := c.conn.GetChannel()
 
 	msgs, err := channel.Consume(
@@ -41,36 +34,40 @@ func (c *Consumer) Consume(ctx context.Context, queueName string, handler func(d
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to consume messages: %w", err)
+		return nil, fmt.Errorf("failed to consume messages: %w", err)
 	}
 
+	jobChan := make(chan domain.ConversionJob)
+
 	go func() {
-		for msg := range msgs {
-			job := domain.ConversionJob{}
-			if err := json.Unmarshal(msg.Body, &job); err != nil {
-				log.Warn("Failed to unmarshal job: %v", err)
-				if err := msg.Nack(false, true); err != nil {
-					log.Warn("Failed to nack message: %v", err)
+		defer close(jobChan)
+		for {
+			select {
+			case <-ctx.Done():
+				log.Info("Context cancelled, stopping message consumption...")
+				return
+			case msg, ok := <-msgs:
+				if !ok {
+					log.Warn("Message channel closed by RabbitMQ")
+					return
 				}
-				continue
-			}
 
-			if err := handler(job); err != nil {
-				log.Warn("Failed to process job: %v", err)
-				if err := msg.Nack(false, true); err != nil {
-					log.Warn("Failed to nack message: %v", err)
+				job := domain.ConversionJob{}
+				if err := json.Unmarshal(msg.Body, &job); err != nil {
+					log.Warn("Failed to unmarshal job: %v", err)
+					_ = msg.Nack(false, true)
+					continue
 				}
-				continue
-			}
 
-			if err := msg.Ack(false); err != nil {
-				log.Warn("Failed to ack message: %v", err)
+				jobChan <- job
+
+				if err := msg.Ack(false); err != nil {
+					log.Warn("Failed to ack message: %v", err)
+				}
+				log.Info("Processed job %s", job.JobID)
 			}
-			log.Info("Processed job %s", job.JobID)
 		}
 	}()
 
-	log.Info("Started consuming messages from queue %s", queueName)
-	<-ctx.Done()
-	return nil
+	return jobChan, nil
 }
