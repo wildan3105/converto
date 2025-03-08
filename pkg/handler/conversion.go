@@ -2,11 +2,13 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/service"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ConversionHandler struct {
@@ -81,4 +83,30 @@ func (h *ConversionHandler) GetConversions(c *fiber.Ctx) error {
 		})
 	}
 	return c.JSON(conversions)
+}
+
+func (h *ConversionHandler) GetConversionByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid ID format. Must be a valid MongoDB ObjectID",
+		})
+	}
+
+	conversion, err := h.conversionService.GetConversionByID(context.Background(), objectID.Hex())
+
+	if err != nil {
+		if errors.Is(err, fiber.ErrNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "Conversion not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch conversion",
+		})
+	}
+
+	return c.JSON(conversion)
 }

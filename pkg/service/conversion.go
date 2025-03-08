@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/domain"
 	"github.com/wildan3105/converto/pkg/repository"
@@ -60,4 +61,23 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 // ListConversions fetches conversions from the repository
 func (s *ConversionService) ListConversions(ctx context.Context, filter bson.M, limit, offset int64) ([]*domain.Conversion, error) {
 	return s.repo.ListConversions(ctx, filter, limit, offset)
+}
+
+// GetConversionByID fetches conversion by ID from the repository
+func (s *ConversionService) GetConversionByID(ctx context.Context, id string) (schema.ConversionResponse, error) {
+	conversion, err := s.repo.GetConversionByID(ctx, id)
+	if err != nil {
+		return schema.ConversionResponse{}, err
+	}
+	if conversion == nil {
+		return schema.ConversionResponse{}, fiber.ErrNotFound
+	}
+
+	return schema.ConversionResponse{
+		ID:               conversion.ID,
+		Status:           conversion.Conversion.Status,
+		Progress:         conversion.Conversion.Progress,
+		OriginalFileURL:  conversion.File.OriginalPath,
+		ConvertedFileURL: conversion.File.ConvertedPath,
+	}, nil
 }
