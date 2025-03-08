@@ -16,7 +16,7 @@ var MongoClient *mongo.Client
 
 var log = logger.GetInstance()
 
-// ConnectDB initializes a MongoDB connection and returns the client
+// Connect initializes a MongoDB connection and returns the client
 // It includes reconnection logic that retries up to 5 times with a 5-second interval
 func Connect(uri string) (*mongo.Client, error) {
 	var client *mongo.Client
@@ -59,8 +59,8 @@ func Ping(client *mongo.Client) error {
 	return client.Ping(ctx, nil)
 }
 
-// DisconnectDB disconnects from MongoDB
-func DisconnectDB(client *mongo.Client) error {
+// Disconnect disconnects from MongoDB
+func Disconnect(client *mongo.Client) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -70,4 +70,9 @@ func DisconnectDB(client *mongo.Client) error {
 
 	log.Info("Disconnected from MongoDB")
 	return nil
+}
+
+// GetCollection returns a MongoDB collection
+func GetCollection(client *mongo.Client, databaseName, collectionName string) *mongo.Collection {
+	return client.Database(databaseName).Collection(collectionName)
 }

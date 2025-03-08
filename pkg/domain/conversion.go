@@ -19,6 +19,7 @@ type Conversion struct {
 	Job        ConversionJob  `bson:"job" json:"job"`
 }
 
+// ConversionData represents the metadata and status of a conversion task
 type ConversionData struct {
 	TargetFormat string           `bson:"target_format" json:"target_format"`
 	Progress     int              `bson:"progress" json:"progress"`
