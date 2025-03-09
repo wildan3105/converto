@@ -1,5 +1,12 @@
 package domain
 
+type FileCategory string
+
+const (
+	FileCategoryOriginal  FileCategory = "original"
+	FileCategoryConverted FileCategory = "converted"
+)
+
 // FileMetadata represents metadata information for files in the conversion process
 type FileMetadata struct {
 	OriginalName  string `bson:"original_name" json:"original_name"`

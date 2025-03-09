@@ -34,3 +34,8 @@ type ConversionResponse struct {
 	OriginalFileURL  string                  `json:"original_file_url"`
 	ConvertedFileURL string                  `json:"converted_file_url,omitempty"`
 }
+
+type GetFileByConversionId struct {
+	Path     string
+	FileName string
+}

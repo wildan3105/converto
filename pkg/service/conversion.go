@@ -41,7 +41,7 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 
 	fileID := uuid.NewString()
 
-	originalFilePath, err := s.storage.SaveFile(req.File, filestorage.FileCategoryOriginal, fileID, req.FileName)
+	originalFilePath, err := s.storage.SaveFile(req.File, domain.FileCategoryOriginal, fileID, req.FileName)
 	if err != nil {
 		return schema.CreateConversionResponse{}, fiber.NewError(fiber.StatusInternalServerError, "Failed to save original file")
 	}
@@ -141,4 +141,39 @@ func (s *ConversionService) GetConversionByID(ctx context.Context, id string) (s
 		OriginalFileURL:  conversion.File.OriginalPath,
 		ConvertedFileURL: conversion.File.ConvertedPath,
 	}, nil
+}
+
+// GetFileByConversionIdAndType returns the file path and name based on conversion ID and file type
+func (s *ConversionService) GetFileByConversionIdAndType(ctx context.Context, id string, fileType string) (schema.GetFileByConversionId, error) {
+	conversion, err := s.repo.GetConversionByID(ctx, id)
+	if err != nil {
+		return schema.GetFileByConversionId{
+			Path:     "",
+			FileName: "",
+		}, err
+	}
+	if conversion == nil {
+		return schema.GetFileByConversionId{
+			Path:     "",
+			FileName: "",
+		}, fiber.ErrNotFound
+	}
+
+	switch fileType {
+	case "original":
+		return schema.GetFileByConversionId{
+			Path:     conversion.File.OriginalPath,
+			FileName: conversion.File.OriginalName,
+		}, nil
+	case "converted":
+		return schema.GetFileByConversionId{
+			Path:     conversion.File.ConvertedPath,
+			FileName: conversion.File.ConvertedName,
+		}, nil
+	default:
+		return schema.GetFileByConversionId{
+			Path:     "",
+			FileName: "",
+		}, nil
+	}
 }
