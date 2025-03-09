@@ -8,6 +8,7 @@ import (
 
 	config "github.com/wildan3105/converto/configs"
 	"github.com/wildan3105/converto/pkg/handler"
+	"github.com/wildan3105/converto/pkg/infrastructure/filestorage"
 	"github.com/wildan3105/converto/pkg/infrastructure/mongodb"
 	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
 	"github.com/wildan3105/converto/pkg/repository"
@@ -37,7 +38,9 @@ func Setup() *fiber.App {
 	publisher := rabbitmq.NewPublisher(connManager)
 
 	conversionRepo := repository.NewMongoRepository(mongoClient, config.AppConfig.MongoDbName)
-	conversionService := service.NewConversionService(conversionRepo, publisher)
+	storage := filestorage.NewLocalFileStorage(config.AppConfig.BaseDirectory)
+
+	conversionService := service.NewConversionService(conversionRepo, publisher, storage)
 	healthService := service.NewHealthService(mongoClient)
 
 	conversionHandler := handler.NewConversionHandler(conversionService)

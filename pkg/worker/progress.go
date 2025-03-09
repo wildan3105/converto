@@ -14,9 +14,9 @@ func (w *Worker) UpdateProgress(ctx context.Context, conversion *domain.Conversi
 		time.Sleep(1 * time.Second)
 		conversion.Conversion.Progress = i
 
-		filter := bson.M{}
-		filter["conversion.status"] = conversion.Conversion.Status
-		filter["conversion.progress"] = conversion.Conversion.Progress
+		filter := bson.M{
+			"conversion.progress": conversion.Conversion.Progress,
+		}
 
 		if err := w.repo.UpdateConversion(ctx, conversion.ID, filter); err != nil {
 			log.Warn("Failed to update progress to %d%%: %v", i, err)

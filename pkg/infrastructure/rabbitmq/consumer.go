@@ -64,7 +64,7 @@ func (c *Consumer) Consume(ctx context.Context, queueName string) (<-chan domain
 				if err := msg.Ack(false); err != nil {
 					log.Warn("Failed to ack message: %v", err)
 				}
-				log.Info("Processed job %s", job.JobID)
+				fmt.Printf("Processed job %v", job)
 			}
 		}
 	}()

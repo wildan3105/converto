@@ -48,7 +48,7 @@ var WorkerCmd = &cobra.Command{
 
 		consumer := rabbitmq.NewConsumer(connManager)
 		conversionRepo := repository.NewMongoRepository(mongoClient, config.AppConfig.MongoDbName)
-		storage := filestorage.NewLocalFileStorage("/")
+		storage := filestorage.NewLocalFileStorage(config.AppConfig.BaseDirectory)
 
 		worker := rabbitMQWorker.NewWorker(consumer, conversionRepo, storage)
 

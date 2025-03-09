@@ -35,6 +35,8 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File is required"})
 	}
 
+	req.File = file
+
 	fileName := file.Filename
 	if filepath.Ext(fileName) != ".shapr" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
