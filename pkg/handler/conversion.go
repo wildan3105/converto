@@ -82,6 +82,14 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 
 	conversion, err := h.conversionService.CreateConversion(context.Background(), req)
 	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+
+		if err.Error() == "service temporarily unavailable" {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error": "Service temporarily unavailable. Please try again later.",
+			})
+		}
+
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create conversion",
 		})

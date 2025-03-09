@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/wildan3105/converto/pkg/domain"
+	"github.com/wildan3105/converto/pkg/infrastructure/circuitbreaker"
 	"github.com/wildan3105/converto/pkg/infrastructure/mongodb"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -25,13 +26,16 @@ type ConversionRepository interface {
 
 // MongoConversionRepository represents the MongoDB repository
 type MongoConversionRepository struct {
-	collection *mongo.Collection
+	collection     *mongo.Collection
+	circuitbreaker *circuitbreaker.CircuitBreaker
 }
 
 // NewMongoRepository creates a new instance of MongoRepository
 func NewMongoRepository(mongoClient *mongo.Client, dbName string) *MongoConversionRepository {
+	cb := circuitbreaker.NewCircuitBreaker(3, 10*time.Second) // 3 failures, 10second cooldown
 	return &MongoConversionRepository{
-		collection: mongoClient.Database(dbName).Collection("conversions"),
+		collection:     mongoClient.Database(dbName).Collection("conversions"),
+		circuitbreaker: cb,
 	}
 }
 
@@ -44,8 +48,20 @@ func (r *MongoConversionRepository) CreateConversion(ctx context.Context, conver
 	conversion.Job.CreatedAt = time.Now()
 	conversion.Job.UpdatedAt = time.Now()
 
-	_, err := r.collection.InsertOne(ctx, conversion)
+	err := r.circuitbreaker.Execute(func() error {
+		_, err := r.collection.InsertOne(ctx, conversion)
+		if err != nil {
+			if mongo.IsTimeout(err) || errors.Is(err, context.DeadlineExceeded) {
+				fmt.Println("Error: database operation timed out")
+				return errors.New("database operation timed out")
+			}
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
+		fmt.Printf("CreateConversion failed: %v\n", err)
 		return "", err
 	}
 
