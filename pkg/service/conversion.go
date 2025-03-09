@@ -58,9 +58,10 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 			TargetFormat: req.TargetFormat,
 			Progress:     0,
 			Status:       domain.ConversionPending,
+			StartedAt:    time.Now(),
 		},
 		Job: domain.ConversionJob{
-			JobID:     uuid.NewString(),
+			ID:        uuid.NewString(),
 			Source:    domain.JobSourceAPI,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -73,8 +74,8 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 		return schema.CreateConversionResponse{}, err
 	}
 
-	event := domain.ConversionJob{
-		JobID:        conversionPayload.Job.JobID,
+	event := schema.ConversionEvent{
+		JobID:        conversionPayload.Job.ID,
 		ConversionID: id,
 		Source:       domain.JobSourceAPI,
 		CreatedAt:    conversionPayload.Job.CreatedAt,
@@ -107,11 +108,11 @@ func (s *ConversionService) ListConversions(ctx context.Context, status string, 
 	responses := make([]schema.ConversionResponse, len(conversions))
 	for i, conversion := range conversions {
 		responses[i] = schema.ConversionResponse{
-			ID:               conversion.ID,
-			Status:           conversion.Conversion.Status,
-			Progress:         conversion.Conversion.Progress,
-			OriginalFileURL:  conversion.File.OriginalPath,
-			ConvertedFileURL: conversion.File.ConvertedPath,
+			ID:                conversion.ID,
+			Status:            conversion.Conversion.Status,
+			Progress:          conversion.Conversion.Progress,
+			OriginalFilePath:  conversion.File.OriginalPath,
+			ConvertedFilePath: conversion.File.ConvertedPath,
 		}
 	}
 
@@ -135,11 +136,11 @@ func (s *ConversionService) GetConversionByID(ctx context.Context, id string) (s
 	}
 
 	return schema.ConversionResponse{
-		ID:               conversion.ID,
-		Status:           conversion.Conversion.Status,
-		Progress:         conversion.Conversion.Progress,
-		OriginalFileURL:  conversion.File.OriginalPath,
-		ConvertedFileURL: conversion.File.ConvertedPath,
+		ID:                conversion.ID,
+		Status:            conversion.Conversion.Status,
+		Progress:          conversion.Conversion.Progress,
+		OriginalFilePath:  conversion.File.OriginalPath,
+		ConvertedFilePath: conversion.File.ConvertedPath,
 	}, nil
 }
 

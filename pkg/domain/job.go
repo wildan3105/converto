@@ -12,10 +12,9 @@ const (
 
 // ConversionJob represents the job status and metadata for a conversion
 type ConversionJob struct {
-	JobID        string `json:"job_id"`
-	ConversionID string
-	Source       JobSource `json:"source"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	ErrorMessage *string   `json:"error_message,omitempty"`
+	ID           string    `bson:"id" json:"id"`
+	Source       JobSource `bson:"source" json:"source"`
+	CreatedAt    time.Time `bson:"createdAt" json:"created_at"`
+	UpdatedAt    time.Time `bson:"updatedAt" json:"updated_at"`
+	ErrorMessage *string   `bson:"errorMessage" json:"error_message,omitempty"`
 }

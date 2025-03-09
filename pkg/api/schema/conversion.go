@@ -2,15 +2,15 @@ package schema
 
 import (
 	"mime/multipart"
+	"time"
 
 	"github.com/wildan3105/converto/pkg/domain"
 )
 
 // CreateConversionRequest defines the payload for creating a conversion
 type CreateConversionRequest struct {
-	File         *multipart.FileHeader `form:"file" binding:"required"`                                      // The .shapr file to convert
-	TargetFormat string                `form:"target_format" binding:"required,oneof=.step .iges .stl .obj"` // The target format to convert to
-	CallbackURL  string                `form:"callback_url"`
+	File         *multipart.FileHeader `form:"file" binding:"required"`
+	TargetFormat string                `form:"target_format" binding:"required,oneof=.step .iges .stl .obj"`
 	FileSize     int64
 	FileName     string
 }
@@ -28,14 +28,22 @@ type ListConversionsResponse struct {
 }
 
 type ConversionResponse struct {
-	ID               string                  `json:"id"`
-	Status           domain.ConversionStatus `json:"status"`
-	Progress         int                     `json:"progress"`
-	OriginalFileURL  string                  `json:"original_file_url"`
-	ConvertedFileURL string                  `json:"converted_file_url,omitempty"`
+	ID                string                  `json:"id"`
+	Status            domain.ConversionStatus `json:"status"`
+	Progress          int                     `json:"progress"`
+	OriginalFilePath  string                  `json:"original_file_path"`
+	ConvertedFilePath string                  `json:"converted_file_path,omitempty"`
 }
 
 type GetFileByConversionId struct {
 	Path     string
 	FileName string
+}
+
+type ConversionEvent struct {
+	JobID        string
+	ConversionID string
+	Source       domain.JobSource
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }

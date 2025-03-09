@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/wildan3105/converto/pkg/domain"
+	"github.com/wildan3105/converto/pkg/api/schema"
 )
 
 // Consumer is responsible for consuming messages from RabbitMQ
@@ -20,7 +20,7 @@ func NewConsumer(cm *ConnectionManager) *Consumer {
 	}
 }
 
-func (c *Consumer) Consume(ctx context.Context, queueName string) (<-chan domain.ConversionJob, error) {
+func (c *Consumer) Consume(ctx context.Context, queueName string) (<-chan schema.ConversionEvent, error) {
 	channel := c.conn.GetChannel()
 
 	msgs, err := channel.Consume(
@@ -37,7 +37,7 @@ func (c *Consumer) Consume(ctx context.Context, queueName string) (<-chan domain
 		return nil, fmt.Errorf("failed to consume messages: %w", err)
 	}
 
-	jobChan := make(chan domain.ConversionJob)
+	jobChan := make(chan schema.ConversionEvent)
 
 	go func() {
 		defer close(jobChan)
@@ -52,7 +52,7 @@ func (c *Consumer) Consume(ctx context.Context, queueName string) (<-chan domain
 					return
 				}
 
-				job := domain.ConversionJob{}
+				job := schema.ConversionEvent{}
 				if err := json.Unmarshal(msg.Body, &job); err != nil {
 					log.Warn("Failed to unmarshal job: %v", err)
 					_ = msg.Nack(false, true)

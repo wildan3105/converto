@@ -3,7 +3,7 @@ package worker
 import (
 	"context"
 
-	"github.com/wildan3105/converto/pkg/domain"
+	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/infrastructure/filestorage"
 	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
 	"github.com/wildan3105/converto/pkg/logger"
@@ -41,16 +41,16 @@ func (w *Worker) Start(ctx context.Context, queueName string) error {
 		case <-ctx.Done():
 			log.Info("Worker context cancelled, stopping job processing...")
 			return nil
-		case job, ok := <-jobChan:
+		case event, ok := <-jobChan:
 			if !ok {
 				log.Info("Job channel closed, exiting worker...")
 				return nil
 			}
-			go func(job domain.ConversionJob) {
-				if err := w.Handle(ctx, job); err != nil {
+			go func(event schema.ConversionEvent) {
+				if err := w.Handle(ctx, event); err != nil {
 					log.Error("Job processing failed: %v", err)
 				}
-			}(job)
+			}(event)
 		}
 	}
 }

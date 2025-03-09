@@ -66,7 +66,7 @@ func (r *MongoConversionRepository) UpdateConversion(ctx context.Context, conver
 	filter := bson.M{"_id": conversionID}
 	update := bson.M{
 		"$set":         updateData,
-		"$currentDate": bson.M{"job.updated_at": true},
+		"$currentDate": bson.M{"job.updatedAt": true},
 	}
 
 	res, err := r.collection.UpdateOne(ctx, filter, update)

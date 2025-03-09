@@ -21,11 +21,10 @@ type Conversion struct {
 
 // ConversionData represents the metadata and status of a conversion task
 type ConversionData struct {
-	TargetFormat string           `bson:"target_format" json:"target_format"`
+	TargetFormat string           `bson:"targetFormat" json:"target_format"`
 	Progress     int              `bson:"progress" json:"progress"`
 	Status       ConversionStatus `bson:"status" json:"status"`
-	ErrorMessage *string          `bson:"error_message" json:"error_message,omitempty"`
-	StartedAt    *time.Time       `bson:"started_at" json:"started_at,omitempty"`
-	CompletedAt  *time.Time       `bson:"completed_at" json:"completed_at,omitempty"`
-	CallbackURL  *string          `bson:"callback_url" json:"callback_url,omitempty"`
+	ErrorMessage *string          `bson:"errorMessage" json:"error_message,omitempty"`
+	StartedAt    time.Time        `bson:"startedAt" json:"started_at,omitempty"`
+	CompletedAt  time.Time        `bson:"completedAt" json:"completed_at,omitempty"`
 }

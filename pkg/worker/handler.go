@@ -3,14 +3,16 @@ package worker
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/domain"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Handle processes a conversion job
-func (w *Worker) Handle(ctx context.Context, job domain.ConversionJob) error {
-	conversion, err := w.repo.GetConversionByID(ctx, job.ConversionID)
+func (w *Worker) Handle(ctx context.Context, event schema.ConversionEvent) error {
+	conversion, err := w.repo.GetConversionByID(ctx, event.ConversionID)
 	if err != nil {
 		return fmt.Errorf("failed to fetch conversion: %w", err)
 	}
@@ -35,7 +37,8 @@ func (w *Worker) Handle(ctx context.Context, job domain.ConversionJob) error {
 		}
 
 		if progress == 100 {
-			updateData["file.converted_path"] = convertedPath
+			updateData["file.convertedPath"] = convertedPath
+			updateData["conversion.completedAt"] = time.Now()
 		}
 
 		log.Info("Conversion progress: %d%% for conversion ID: %s", progress, conversion.ID)
