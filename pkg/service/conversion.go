@@ -39,7 +39,9 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 		return schema.CreateConversionResponse{}, fiber.NewError(fiber.StatusBadRequest, "File is required")
 	}
 
-	originalFilePath, err := s.storage.SaveFile(req.File, filestorage.FileCategoryOriginal, req.FileName)
+	fileID := uuid.NewString()
+
+	originalFilePath, err := s.storage.SaveFile(req.File, filestorage.FileCategoryOriginal, fileID, req.FileName)
 	if err != nil {
 		return schema.CreateConversionResponse{}, fiber.NewError(fiber.StatusInternalServerError, "Failed to save original file")
 	}
@@ -50,6 +52,7 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 			OriginalPath:  originalFilePath,
 			ConvertedName: convertedFileName,
 			SizeInBytes:   req.FileSize,
+			ID:            fileID,
 		},
 		Conversion: domain.ConversionData{
 			TargetFormat: req.TargetFormat,

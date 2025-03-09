@@ -18,9 +18,9 @@ const (
 
 // FileStorage interface to abstract file storage operations
 type FileStorage interface {
-	SaveFile(file *multipart.FileHeader, fileCategory FileCategory, destPath string) (string, error)
+	SaveFile(file *multipart.FileHeader, fileCategory FileCategory, id string, destPath string) (string, error)
 	CopyFile(srcPath, destPath string) (string, error)
-	GetFullPath(fileCategory FileCategory, fileName string) string
+	GetFullPath(fileCategory FileCategory, id string, fileName string) string
 }
 
 // LocalFileStorage is an implementation of FileStorage using local filesystem
@@ -34,7 +34,7 @@ func NewLocalFileStorage(baseDir string) *LocalFileStorage {
 }
 
 // SaveFile saves the uploaded file to the specified path or default directory
-func (l *LocalFileStorage) SaveFile(file *multipart.FileHeader, fileCategory FileCategory, destPath string) (string, error) {
+func (l *LocalFileStorage) SaveFile(file *multipart.FileHeader, fileCategory FileCategory, id string, destPath string) (string, error) {
 	src, err := file.Open()
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %w", err)
@@ -44,7 +44,7 @@ func (l *LocalFileStorage) SaveFile(file *multipart.FileHeader, fileCategory Fil
 	if destPath == "" {
 		destPath = filepath.Join(l.baseDir, fmt.Sprintf("%d_%s", time.Now().UnixNano(), file.Filename))
 	} else {
-		destPath = filepath.Join(l.baseDir+string(fileCategory), destPath)
+		destPath = filepath.Join(l.baseDir+string(fileCategory)+"/"+id, destPath)
 	}
 
 	dir := filepath.Dir(destPath)
@@ -92,6 +92,6 @@ func (l *LocalFileStorage) CopyFile(srcPath, destPath string) (string, error) {
 }
 
 // GetFullPath constructs the full path for a file given its category and name
-func (l *LocalFileStorage) GetFullPath(fileCategory FileCategory, fileName string) string {
-	return filepath.Join(l.baseDir, string(fileCategory), fileName)
+func (l *LocalFileStorage) GetFullPath(fileCategory FileCategory, id string, fileName string) string {
+	return filepath.Join(l.baseDir, string(fileCategory), id, fileName)
 }

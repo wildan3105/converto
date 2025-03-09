@@ -20,9 +20,10 @@ func (w *Worker) Handle(ctx context.Context, job domain.ConversionJob) error {
 
 	originalPath := conversion.File.OriginalPath
 	convertedName := conversion.File.ConvertedName
+	fileID := conversion.File.ID
 
 	// Use GetFullPath method to generate the full path for the converted file
-	convertedPath := w.storage.GetFullPath(filestorage.FileCategoryConverted, convertedName)
+	convertedPath := w.storage.GetFullPath(filestorage.FileCategoryConverted, fileID, convertedName)
 
 	// Simulate conversion process with progress updates
 	if err := w.UpdateProgress(ctx, conversion, 10); err != nil {

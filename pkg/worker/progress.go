@@ -17,6 +17,7 @@ func (w *Worker) UpdateProgress(ctx context.Context, conversion *domain.Conversi
 
 		updateData := bson.M{
 			"conversion.progress": i,
+			"conversion.status":   domain.ConversionInProgress,
 		}
 
 		fmt.Println("updating the progress file of conversionID > ", conversion.ID)

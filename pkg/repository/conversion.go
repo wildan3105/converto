@@ -63,10 +63,10 @@ func (r *MongoConversionRepository) GetConversionByID(ctx context.Context, conve
 
 // UpdateConversion updates a conversion document by ID
 func (r *MongoConversionRepository) UpdateConversion(ctx context.Context, conversionID string, updateData bson.M) error {
-	filter := bson.M{"_id": conversionID} // Use the correct filter field
+	filter := bson.M{"_id": conversionID}
 	update := bson.M{
 		"$set":         updateData,
-		"$currentDate": bson.M{"job.updated_at": true}, // Automatically set to the current date
+		"$currentDate": bson.M{"job.updated_at": true},
 	}
 
 	res, err := r.collection.UpdateOne(ctx, filter, update)
