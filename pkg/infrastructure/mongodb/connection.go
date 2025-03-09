@@ -14,6 +14,8 @@ import (
 
 var MongoClient *mongo.Client
 
+const DefaultTimeout = 10 * time.Second
+
 var log = logger.GetInstance()
 
 // Connect initializes a MongoDB connection and returns the client
@@ -75,4 +77,9 @@ func Disconnect(client *mongo.Client) error {
 // GetCollection returns a MongoDB collection
 func GetCollection(client *mongo.Client, databaseName, collectionName string) *mongo.Collection {
 	return client.Database(databaseName).Collection(collectionName)
+}
+
+// WithTimeout applies a generic timeout to a context for MongoDB operations
+func WithTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(ctx, DefaultTimeout)
 }

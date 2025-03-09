@@ -11,14 +11,14 @@ import (
 
 // HealthService provides methods for health checks
 type HealthService struct {
-	MongoClient *mongo.Client
+	MongoClient    *mongo.Client
 	RabbitMQClient *rabbitmq.ConnectionManager
 }
 
 // NewHealthService returns a new HealthService
 func NewHealthService(mongoClient *mongo.Client, rabbitMQClient *rabbitmq.ConnectionManager) *HealthService {
 	return &HealthService{
-		MongoClient: mongoClient,
+		MongoClient:    mongoClient,
 		RabbitMQClient: rabbitMQClient,
 	}
 }
