@@ -28,11 +28,11 @@ type ListConversionsResponse struct {
 }
 
 type ConversionResponse struct {
-	ID               string                  `json:"id"`
-	Status           domain.ConversionStatus `json:"status"`
-	Progress         int                     `json:"progress"`
-	OriginalFileURL  string                  `json:"original_file_url"`
-	ConvertedFileURL string                  `json:"converted_file_url,omitempty"`
+	ID                string                  `json:"id"`
+	Status            domain.ConversionStatus `json:"status"`
+	Progress          int                     `json:"progress"`
+	OriginalFilePath  string                  `json:"original_file_path"`
+	ConvertedFilePath string                  `json:"converted_file_path,omitempty"`
 }
 
 type GetFileByConversionId struct {
