@@ -16,7 +16,9 @@ import (
 )
 
 func Setup() *fiber.App {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 1024 * 1024 * 1024, // 1 GB
+	})
 
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",

@@ -22,33 +22,36 @@ func (w *Worker) Handle(ctx context.Context, job domain.ConversionJob) error {
 	convertedName := conversion.File.ConvertedName
 	fileID := conversion.File.ID
 
-	// Use GetFullPath method to generate the full path for the converted file
 	convertedPath := w.storage.GetFullPath(filestorage.FileCategoryConverted, fileID, convertedName)
 
-	// Simulate conversion process with progress updates
-	if err := w.UpdateProgress(ctx, conversion, 10); err != nil {
-		return err
+	progressCb := func(progress int) {
+		status := domain.ConversionInProgress
+		if progress == 100 {
+			status = domain.ConversionCompleted
+		}
+
+		updateData := bson.M{
+			"conversion.progress": progress,
+			"conversion.status":   status,
+		}
+
+		if progress == 100 {
+			updateData["file.converted_path"] = convertedPath
+		}
+
+		log.Info("Conversion progress: %d%% for conversion ID: %s", progress, conversion.ID)
+
+		if err := w.repo.UpdateConversion(ctx, conversion.ID, updateData); err != nil {
+			log.Warn("Failed to update progress to %d%%: %v", progress, err)
+		}
 	}
 
-	// Emulate file conversion by copying the original file to the converted path
-	convertedFilePath, err := w.storage.CopyFile(originalPath, convertedPath)
+	convertedFilePath, err := w.storage.CopyFile(originalPath, convertedPath, progressCb)
 	if err != nil {
 		return fmt.Errorf("failed to emulate file conversion: %w", err)
 	}
+
 	log.Info("Converted file stored at: %s", convertedFilePath)
-
-	// Combine update of converted path, status, and final progress to 100%
-	updateData := bson.M{
-		"file.converted_path": convertedFilePath,
-		"conversion.status":   "completed",
-		"conversion.progress": 100,
-	}
-
-	fmt.Println("updating the status and progress to 100 percent file of conversionID > ", conversion.ID)
-
-	if err := w.repo.UpdateConversion(ctx, conversion.ID, updateData); err != nil {
-		return fmt.Errorf("failed to update conversion status: %w", err)
-	}
 
 	return nil
 }
