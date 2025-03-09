@@ -9,8 +9,8 @@ import (
 
 // CreateConversionRequest defines the payload for creating a conversion
 type CreateConversionRequest struct {
-	File         *multipart.FileHeader `form:"file" binding:"required"`                                      // The .shapr file to convert
-	TargetFormat string                `form:"target_format" binding:"required,oneof=.step .iges .stl .obj"` // The target format to convert to
+	File         *multipart.FileHeader `form:"file" binding:"required"`
+	TargetFormat string                `form:"target_format" binding:"required,oneof=.step .iges .stl .obj"`
 	FileSize     int64
 	FileName     string
 }
