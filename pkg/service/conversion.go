@@ -60,7 +60,7 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 			Status:       domain.ConversionPending,
 		},
 		Job: domain.ConversionJob{
-			JobID:     uuid.NewString(),
+			ID:        uuid.NewString(),
 			Source:    domain.JobSourceAPI,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -74,7 +74,7 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 	}
 
 	event := domain.ConversionJob{
-		JobID:        conversionPayload.Job.JobID,
+		ID:           conversionPayload.Job.ID,
 		ConversionID: id,
 		Source:       domain.JobSourceAPI,
 		CreatedAt:    conversionPayload.Job.CreatedAt,

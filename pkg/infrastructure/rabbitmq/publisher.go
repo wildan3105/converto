@@ -107,7 +107,7 @@ func (p *Publisher) PublishConversionJob(ctx context.Context, job domain.Convers
 		log.Warn("Publishing context timed out or cancelled")
 		return ctx.Err()
 	default:
-		log.Info("Published job %s to exchange %s with routing key %s", job.JobID, exchange, routingKey)
+		log.Info("Published job %s to exchange %s with routing key %s", job.ID, exchange, routingKey)
 		return nil
 	}
 }

@@ -12,7 +12,7 @@ const (
 
 // ConversionJob represents the job status and metadata for a conversion
 type ConversionJob struct {
-	JobID        string `json:"job_id"`
+	ID           string `json:"id"`
 	ConversionID string
 	Source       JobSource `json:"source"`
 	CreatedAt    time.Time `json:"created_at"`

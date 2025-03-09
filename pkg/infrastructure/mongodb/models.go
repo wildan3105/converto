@@ -32,13 +32,12 @@ type ConversionData struct {
 	ErrorMessage *string    `bson:"error_message" json:"error_message,omitempty"`
 	StartedAt    *time.Time `bson:"started_at" json:"started_at,omitempty"`
 	CompletedAt  *time.Time `bson:"completed_at" json:"completed_at,omitempty"`
-	CallbackURL  *string    `bson:"callback_url" json:"callback_url,omitempty"`
 }
 
 // JobMetadata holds information about the job source and message queue
 type JobMetadata struct {
 	Source    JobSource `bson:"source" json:"source"`
-	JobID     string    `bson:"queue_id" json:"queue_id,omitempty"`
+	ID        string    `bson:"id" json:"id,omitempty"`
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }

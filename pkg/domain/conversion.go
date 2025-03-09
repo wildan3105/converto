@@ -27,5 +27,4 @@ type ConversionData struct {
 	ErrorMessage *string          `bson:"error_message" json:"error_message,omitempty"`
 	StartedAt    *time.Time       `bson:"started_at" json:"started_at,omitempty"`
 	CompletedAt  *time.Time       `bson:"completed_at" json:"completed_at,omitempty"`
-	CallbackURL  *string          `bson:"callback_url" json:"callback_url,omitempty"`
 }

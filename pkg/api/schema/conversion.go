@@ -10,7 +10,6 @@ import (
 type CreateConversionRequest struct {
 	File         *multipart.FileHeader `form:"file" binding:"required"`                                      // The .shapr file to convert
 	TargetFormat string                `form:"target_format" binding:"required,oneof=.step .iges .stl .obj"` // The target format to convert to
-	CallbackURL  string                `form:"callback_url"`
 	FileSize     int64
 	FileName     string
 }
