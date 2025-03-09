@@ -30,11 +30,22 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 		})
 	}
 
-	file, err := c.FormFile("file")
+	form, err := c.MultipartForm()
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File is required"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Failed to parse multipart form",
+		})
 	}
 
+	files := form.File["file"]
+	if len(files) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File is required"})
+	}
+	if len(files) > 1 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Only one file is allowed"})
+	}
+
+	file := files[0]
 	req.File = file
 
 	fileName := file.Filename
@@ -66,8 +77,7 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 		})
 	}
 
-	fileSize := file.Size
-	req.FileSize = fileSize
+	req.FileSize = file.Size
 
 	conversion, err := h.conversionService.CreateConversion(context.Background(), req)
 	if err != nil {
@@ -75,6 +85,7 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 			"error": "Failed to create conversion",
 		})
 	}
+
 	return c.Status(fiber.StatusCreated).JSON(conversion)
 }
 
