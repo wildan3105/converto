@@ -8,13 +8,17 @@ import (
 
 	config "github.com/wildan3105/converto/configs"
 	"github.com/wildan3105/converto/pkg/handler"
+	"github.com/wildan3105/converto/pkg/infrastructure/filestorage"
 	"github.com/wildan3105/converto/pkg/infrastructure/mongodb"
+	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
 	"github.com/wildan3105/converto/pkg/repository"
 	"github.com/wildan3105/converto/pkg/service"
 )
 
 func Setup() *fiber.App {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 1024 * 1024 * 1024, // 1 GB
+	})
 
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
@@ -28,8 +32,17 @@ func Setup() *fiber.App {
 		log.Fatal("Failed to connect to MongoDB: ", err)
 	}
 
+	connManager, err := rabbitmq.NewConnectionManager(config.AppConfig.RabbitMQURI)
+	if err != nil {
+		log.Fatalf("Failed to initialize RabbitMQ: %v", err)
+	}
+
+	publisher := rabbitmq.NewPublisher(connManager)
+
 	conversionRepo := repository.NewMongoRepository(mongoClient, config.AppConfig.MongoDbName)
-	conversionService := service.NewConversionService(conversionRepo)
+	storage := filestorage.NewLocalFileStorage(config.AppConfig.BaseDirectory)
+
+	conversionService := service.NewConversionService(conversionRepo, publisher, storage)
 	healthService := service.NewHealthService(mongoClient)
 
 	conversionHandler := handler.NewConversionHandler(conversionService)

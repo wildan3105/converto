@@ -18,6 +18,7 @@ func main() {
 	}
 
 	rootCmd.AddCommand(cmd.RestCmd)
+	rootCmd.AddCommand(cmd.WorkerCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatalf("Command execution failed: %v", err)

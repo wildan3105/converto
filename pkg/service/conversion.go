@@ -6,30 +6,53 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/domain"
+	"github.com/wildan3105/converto/pkg/infrastructure/filestorage"
+	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
+	"github.com/wildan3105/converto/pkg/logger"
 	"github.com/wildan3105/converto/pkg/repository"
 )
 
+var log = logger.GetInstance()
+
 type ConversionService struct {
-	repo repository.ConversionRepository
+	repo      repository.ConversionRepository
+	publisher *rabbitmq.Publisher
+	storage   filestorage.FileStorage
 }
 
-func NewConversionService(repo repository.ConversionRepository) *ConversionService {
-	return &ConversionService{repo: repo}
+func NewConversionService(repo repository.ConversionRepository, publisher *rabbitmq.Publisher, storage filestorage.FileStorage) *ConversionService {
+	return &ConversionService{
+		repo:      repo,
+		publisher: publisher,
+		storage:   storage,
+	}
 }
 
 // CreateConversion creates a conversion
 func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.CreateConversionRequest) (schema.CreateConversionResponse, error) {
 	convertedFileName := strings.TrimSuffix(req.FileName, ".shapr") + req.TargetFormat
 
+	if req.File == nil {
+		return schema.CreateConversionResponse{}, fiber.NewError(fiber.StatusBadRequest, "File is required")
+	}
+
+	fileID := uuid.NewString()
+
+	originalFilePath, err := s.storage.SaveFile(req.File, filestorage.FileCategoryOriginal, fileID, req.FileName)
+	if err != nil {
+		return schema.CreateConversionResponse{}, fiber.NewError(fiber.StatusInternalServerError, "Failed to save original file")
+	}
+
 	conversionPayload := &domain.Conversion{
 		File: domain.FileMetadata{
 			OriginalName:  req.FileName,
-			OriginalPath:  "path-original",   // will be fetched from the stored file
-			ConvertedName: convertedFileName, // will be fetched later
-			ConvertedPath: "path-converted",  // will be fetched later
+			OriginalPath:  originalFilePath,
+			ConvertedName: convertedFileName,
 			SizeInBytes:   req.FileSize,
+			ID:            fileID,
 		},
 		Conversion: domain.ConversionData{
 			TargetFormat: req.TargetFormat,
@@ -37,21 +60,36 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 			Status:       domain.ConversionPending,
 		},
 		Job: domain.ConversionJob{
-			JobID:     "1",
+			JobID:     uuid.NewString(),
 			Source:    domain.JobSourceAPI,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
 	}
 
-	res, err := s.repo.CreateConversion(ctx, conversionPayload)
+	id, err := s.repo.CreateConversion(ctx, conversionPayload)
 
 	if err != nil {
 		return schema.CreateConversionResponse{}, err
 	}
 
+	event := domain.ConversionJob{
+		JobID:        conversionPayload.Job.JobID,
+		ConversionID: id,
+		Source:       domain.JobSourceAPI,
+		CreatedAt:    conversionPayload.Job.CreatedAt,
+		UpdatedAt:    conversionPayload.Job.UpdatedAt,
+	}
+
+	publishErr := s.publisher.PublishConversionJob(ctx, event, "conversion", "created")
+
+	if publishErr != nil {
+		log.Warn("Error when publishing %v", err)
+		return schema.CreateConversionResponse{}, err
+	}
+
 	return schema.CreateConversionResponse{
-		ID:      res,
+		ID:      id,
 		Status:  conversionPayload.Conversion.Status,
 		Message: "Conversion created successfully",
 	}, nil

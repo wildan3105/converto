@@ -19,6 +19,7 @@ type Config struct {
 	RabbitMQManagementUser     string `envconfig:"RABBITMQ_MANAGEMENT_USER"`
 	RabbitMQManagementPassword string `envconfig:"RABBITMQ_MANAGEMENT_PASSWORD"`
 	RabbitMQManagementVHost    string `envconfig:"RABBITMQ_MANAGEMENT_VHOST" default:"/"`
+	BaseDirectory              string `envconfig:"BASE_DIRECTORY" required:"true"`
 }
 
 var AppConfig Config
