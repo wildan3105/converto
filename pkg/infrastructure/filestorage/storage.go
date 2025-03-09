@@ -7,20 +7,15 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-)
 
-type FileCategory string
-
-const (
-	FileCategoryOriginal  FileCategory = "original"
-	FileCategoryConverted FileCategory = "converted"
+	"github.com/wildan3105/converto/pkg/domain"
 )
 
 // FileStorage interface to abstract file storage operations
 type FileStorage interface {
-	SaveFile(file *multipart.FileHeader, fileCategory FileCategory, id string, destPath string) (string, error)
+	SaveFile(file *multipart.FileHeader, fileCategory domain.FileCategory, id string, destPath string) (string, error)
 	CopyFile(srcPath, destPath string, progressCb func(progress int)) (string, error)
-	GetFullPath(fileCategory FileCategory, id string, fileName string) string
+	GetFullPath(fileCategory domain.FileCategory, id string, fileName string) string
 }
 
 // LocalFileStorage is an implementation of FileStorage using local filesystem
@@ -34,7 +29,7 @@ func NewLocalFileStorage(baseDir string) *LocalFileStorage {
 }
 
 // SaveFile saves the uploaded file to the specified path or default directory
-func (l *LocalFileStorage) SaveFile(file *multipart.FileHeader, fileCategory FileCategory, id string, destPath string) (string, error) {
+func (l *LocalFileStorage) SaveFile(file *multipart.FileHeader, fileCategory domain.FileCategory, id string, destPath string) (string, error) {
 	src, err := file.Open()
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %w", err)
@@ -122,6 +117,6 @@ func (l *LocalFileStorage) CopyFile(srcPath, destPath string, progressCb func(pr
 }
 
 // GetFullPath constructs the full path for a file given its category and name
-func (l *LocalFileStorage) GetFullPath(fileCategory FileCategory, id string, fileName string) string {
+func (l *LocalFileStorage) GetFullPath(fileCategory domain.FileCategory, id string, fileName string) string {
 	return filepath.Join(l.baseDir, string(fileCategory), id, fileName)
 }

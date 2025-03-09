@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/wildan3105/converto/pkg/domain"
-	"github.com/wildan3105/converto/pkg/infrastructure/filestorage"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -22,7 +21,7 @@ func (w *Worker) Handle(ctx context.Context, job domain.ConversionJob) error {
 	convertedName := conversion.File.ConvertedName
 	fileID := conversion.File.ID
 
-	convertedPath := w.storage.GetFullPath(filestorage.FileCategoryConverted, fileID, convertedName)
+	convertedPath := w.storage.GetFullPath(domain.FileCategoryConverted, fileID, convertedName)
 
 	progressCb := func(progress int) {
 		status := domain.ConversionInProgress

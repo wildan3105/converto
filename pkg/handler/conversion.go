@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
@@ -30,11 +31,22 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 		})
 	}
 
-	file, err := c.FormFile("file")
+	form, err := c.MultipartForm()
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File is required"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Failed to parse multipart form",
+		})
 	}
 
+	files := form.File["file"]
+	if len(files) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "File is required"})
+	}
+	if len(files) > 1 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Only one file is allowed"})
+	}
+
+	file := files[0]
 	req.File = file
 
 	fileName := file.Filename
@@ -66,8 +78,7 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 		})
 	}
 
-	fileSize := file.Size
-	req.FileSize = fileSize
+	req.FileSize = file.Size
 
 	conversion, err := h.conversionService.CreateConversion(context.Background(), req)
 	if err != nil {
@@ -75,14 +86,14 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 			"error": "Failed to create conversion",
 		})
 	}
+
 	return c.Status(fiber.StatusCreated).JSON(conversion)
 }
 
 func (h *ConversionHandler) GetConversions(c *fiber.Ctx) error {
 	status := c.Query("status")
 
-	// Validate the status if provided
-	if status != "" && !IsValidConversionStatus(status) {
+	if status != "" && !isValidConversionStatus(status) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid status. Must be one of 'pending', 'in_progress', 'completed', 'failed'",
 		})
@@ -136,10 +147,61 @@ func (h *ConversionHandler) GetConversionByID(c *fiber.Ctx) error {
 	return c.JSON(conversion)
 }
 
-// IsValidConversionStatus checks if the provided status is a valid ConversionStatus
-func IsValidConversionStatus(status string) bool {
+func (h *ConversionHandler) GetFileByConversionId(c *fiber.Ctx) error {
+	id := c.Params("id")
+	fileType := c.Query("type")
+
+	if fileType == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "File type query is required. Must be one of 'type=original', 'type=converted'",
+		})
+	}
+
+	if !isValidFileType(fileType) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid file type. Must be one of 'original', 'converted'",
+		})
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid ID format. Must be a valid MongoDB ObjectID",
+		})
+	}
+
+	fileDetails, err := h.conversionService.GetFileByConversionIdAndType(context.Background(), objectID.Hex(), fileType)
+	if err != nil {
+		if errors.Is(err, fiber.ErrNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "File not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch file",
+		})
+	}
+
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileDetails.FileName))
+	c.Set("Content-Type", "application/octet-stream")
+
+	return c.SendFile(fileDetails.Path, false)
+}
+
+// isValidConversionStatus checks if the provided status is a valid ConversionStatus
+func isValidConversionStatus(status string) bool {
 	switch domain.ConversionStatus(status) {
 	case domain.ConversionPending, domain.ConversionInProgress, domain.ConversionCompleted, domain.ConversionFailed:
+		return true
+	default:
+		return false
+	}
+}
+
+// isValidFileType checks if the provided file type is a valid FileCategory
+func isValidFileType(fileType string) bool {
+	switch domain.FileCategory(fileType) {
+	case domain.FileCategoryConverted, domain.FileCategoryOriginal:
 		return true
 	default:
 		return false

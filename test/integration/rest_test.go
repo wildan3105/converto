@@ -144,4 +144,25 @@ func TestConversionEndpoint(t *testing.T) {
 	req = httptest.NewRequest("GET", "/api/v1/conversions/60b8d6f5f9c4b8b8b8b8b8b8", nil)
 	resp, _ = app.Test(req, -1)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+	// GET /api/v1/conversions/:id/files - 	does not provided any query, return 400
+	invalidGetFileByConversionId := httptest.NewRequest("GET", "/api/v1/conversions/"+createResp.ID+"/files", nil)
+	resp, _ = app.Test(invalidGetFileByConversionId, -1)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	// Happy path - return the expected response
+	validGetFileByConversionId := httptest.NewRequest("GET", "/api/v1/conversions/"+createResp.ID+"/files?type=original", nil)
+	respGetFileByConversionId, _ := app.Test(validGetFileByConversionId, -1)
+
+	assert.Equal(t, http.StatusOK, respGetFileByConversionId.StatusCode)
+
+	contentDisposition := respGetFileByConversionId.Header.Get("Content-Disposition")
+	assert.Contains(t, contentDisposition, "attachment; filename=")
+
+	contentType := respGetFileByConversionId.Header.Get("Content-Type")
+	assert.Equal(t, "application/octet-stream", contentType)
+
+	body, err := io.ReadAll(respGetFileByConversionId.Body)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, body)
 }

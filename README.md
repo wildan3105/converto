@@ -38,6 +38,7 @@ golangci-lint run
 ⚠ **WARNING** ⚠
 
 > Test is ran against the local development database. So make sure the data is clean before running the test to ensure its accuracy
+> Also ensure the server and worker is running
 
 ```bash
 go test ./...
