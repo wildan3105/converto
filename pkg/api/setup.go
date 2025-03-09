@@ -43,7 +43,7 @@ func Setup() *fiber.App {
 	storage := filestorage.NewLocalFileStorage(config.AppConfig.BaseDirectory)
 
 	conversionService := service.NewConversionService(conversionRepo, publisher, storage)
-	healthService := service.NewHealthService(mongoClient)
+	healthService := service.NewHealthService(mongoClient, connManager)
 
 	conversionHandler := handler.NewConversionHandler(conversionService)
 	healthHandler := handler.NewHealthHandler(healthService)
