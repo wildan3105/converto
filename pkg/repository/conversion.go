@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/wildan3105/converto/pkg/domain"
@@ -62,11 +63,29 @@ func (r *MongoConversionRepository) GetConversionByID(ctx context.Context, conve
 
 // UpdateConversion updates a conversion document by ID
 func (r *MongoConversionRepository) UpdateConversion(ctx context.Context, conversionID string, updateData bson.M) error {
-	filter := bson.M{"conversion_id": conversionID}
-	update := bson.M{"$set": updateData, "$currentDate": bson.M{"job.updated_at": true}}
+	filter := bson.M{"_id": conversionID} // Use the correct filter field
+	update := bson.M{
+		"$set":         updateData,
+		"$currentDate": bson.M{"job.updated_at": true}, // Automatically set to the current date
+	}
 
-	_, err := r.collection.UpdateOne(ctx, filter, update)
-	return err
+	res, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount == 0 {
+		fmt.Println("No document matched the provided conversion ID.")
+		return errors.New("conversion not found")
+	}
+
+	if res.ModifiedCount > 0 {
+		fmt.Println("Successfully updated the conversion document!")
+	} else {
+		fmt.Println("Document found but no update was necessary.")
+	}
+
+	return nil
 }
 
 // ListConversions retrieves a list of conversion documents with optional status filtering

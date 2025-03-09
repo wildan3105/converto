@@ -6,6 +6,7 @@ import (
 
 	"github.com/wildan3105/converto/pkg/domain"
 	"github.com/wildan3105/converto/pkg/infrastructure/filestorage"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Handle processes a conversion job
@@ -35,11 +36,15 @@ func (w *Worker) Handle(ctx context.Context, job domain.ConversionJob) error {
 	}
 	log.Info("Converted file stored at: %s", convertedFilePath)
 
-	// Update the document with the converted file path and mark as completed
-	updateData := map[string]any{
-		"file.convertedPath": convertedFilePath,
-		"conversion.status":  "completed",
+	// Combine update of converted path, status, and final progress to 100%
+	updateData := bson.M{
+		"file.converted_path": convertedFilePath,
+		"conversion.status":   "completed",
+		"conversion.progress": 100,
 	}
+
+	fmt.Println("updating the status and progress to 100 percent file of conversionID > ", conversion.ID)
+
 	if err := w.repo.UpdateConversion(ctx, conversion.ID, updateData); err != nil {
 		return fmt.Errorf("failed to update conversion status: %w", err)
 	}

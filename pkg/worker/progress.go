@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/wildan3105/converto/pkg/domain"
@@ -9,16 +10,18 @@ import (
 )
 
 // UpdateProgress simulates progress and updates the database in 10% increments
-func (w *Worker) UpdateProgress(ctx context.Context, conversion *domain.Conversion, progress int) error {
-	for i := progress; i <= 100; i += 10 {
+func (w *Worker) UpdateProgress(ctx context.Context, conversion *domain.Conversion, startProgress int) error {
+	for i := startProgress; i < 100; i += 10 {
 		time.Sleep(1 * time.Second)
 		conversion.Conversion.Progress = i
 
-		filter := bson.M{
-			"conversion.progress": conversion.Conversion.Progress,
+		updateData := bson.M{
+			"conversion.progress": i,
 		}
 
-		if err := w.repo.UpdateConversion(ctx, conversion.ID, filter); err != nil {
+		fmt.Println("updating the progress file of conversionID > ", conversion.ID)
+
+		if err := w.repo.UpdateConversion(ctx, conversion.ID, updateData); err != nil {
 			log.Warn("Failed to update progress to %d%%: %v", i, err)
 			return err
 		}
