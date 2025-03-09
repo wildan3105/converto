@@ -16,36 +16,36 @@ const (
 
 // FileMetadata represents metadata for both original and converted files
 type FileMetadata struct {
-	OriginalName  string `bson:"original_name" json:"original_name"`
-	OriginalPath  string `bson:"original_path" json:"original_path"`
-	ConvertedName string `bson:"converted_name" json:"converted_name"`
-	ConvertedPath string `bson:"converted_path" json:"converted_path"`
-	SizeInBytes   int64  `bson:"size_in_bytes" json:"size_in_bytes"`
-	ID            string `json:"id,omitempty"`
+	OriginalName  string `bson:"originalName"`
+	OriginalPath  string `bson:"originalPath"`
+	ConvertedName string `bson:"convertedName"`
+	ConvertedPath string `bson:"convertedPath"`
+	SizeInBytes   int64  `bson:"sizeInBytes"`
+	ID            string `bson:"id,omitempty"`
 }
 
 // Conversion holds specific conversion job details.
 type ConversionData struct {
-	TargetFormat string     `bson:"target_format" json:"target_format"`
-	Progress     int        `bson:"progress" json:"progress"`
-	Status       string     `bson:"status" json:"status"`
-	ErrorMessage *string    `bson:"error_message" json:"error_message,omitempty"`
-	StartedAt    *time.Time `bson:"started_at" json:"started_at,omitempty"`
-	CompletedAt  *time.Time `bson:"completed_at" json:"completed_at,omitempty"`
+	TargetFormat string     `bson:"targetFormat"`
+	Progress     int        `bson:"progress"`
+	Status       string     `bson:"status"`
+	ErrorMessage *string    `bson:"errorMessage,omitempty"`
+	StartedAt    *time.Time `bson:"startedAt,omitempty"`
+	CompletedAt  *time.Time `bson:"completedAt,omitempty"`
 }
 
 // JobMetadata holds information about the job source and message queue
 type JobMetadata struct {
-	Source    JobSource `bson:"source" json:"source"`
-	ID        string    `bson:"id" json:"id,omitempty"`
-	CreatedAt time.Time `bson:"created_at" json:"created_at"`
-	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+	Source    JobSource `bson:"source"`
+	ID        string    `bson:"id,omitempty"`
+	CreatedAt time.Time `bson:"createdAt"`
+	UpdatedAt time.Time `bson:"updatedAt"`
 }
 
 // Conversion represents the complete document stored in the database
 type Conversion struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	File       FileMetadata       `bson:"file" json:"file"`
-	Conversion ConversionData     `bson:"conversion" json:"conversion"`
-	Job        JobMetadata        `bson:"job" json:"job"`
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	File       FileMetadata       `bson:"file"`
+	Conversion ConversionData     `bson:"conversion"`
+	Job        JobMetadata        `bson:"job"`
 }

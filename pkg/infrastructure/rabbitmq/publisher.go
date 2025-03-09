@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/rabbitmq/amqp091-go"
-	"github.com/wildan3105/converto/pkg/domain"
+	"github.com/wildan3105/converto/pkg/api/schema"
 )
 
 // Publisher is responsible for publishing messages to RabbitMQ
@@ -67,8 +67,8 @@ func (p *Publisher) enableConfirmMode() error {
 	return nil
 }
 
-func (p *Publisher) PublishConversionJob(ctx context.Context, job domain.ConversionJob, exchange, routingKey string) error {
-	jobBytes, err := json.Marshal(job)
+func (p *Publisher) PublishConversionJob(ctx context.Context, conversionEvent schema.ConversionEvent, exchange, routingKey string) error {
+	jobBytes, err := json.Marshal(conversionEvent)
 	if err != nil {
 		return fmt.Errorf("failed to marshal job: %w", err)
 	}
@@ -107,7 +107,7 @@ func (p *Publisher) PublishConversionJob(ctx context.Context, job domain.Convers
 		log.Warn("Publishing context timed out or cancelled")
 		return ctx.Err()
 	default:
-		log.Info("Published job %s to exchange %s with routing key %s", job.ID, exchange, routingKey)
+		log.Info("Published job %s to exchange %s with routing key %s", conversionEvent.JobID, exchange, routingKey)
 		return nil
 	}
 }

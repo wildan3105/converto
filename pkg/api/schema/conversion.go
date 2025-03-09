@@ -2,6 +2,7 @@ package schema
 
 import (
 	"mime/multipart"
+	"time"
 
 	"github.com/wildan3105/converto/pkg/domain"
 )
@@ -37,4 +38,12 @@ type ConversionResponse struct {
 type GetFileByConversionId struct {
 	Path     string
 	FileName string
+}
+
+type ConversionEvent struct {
+	JobID        string
+	ConversionID string
+	Source       domain.JobSource
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
