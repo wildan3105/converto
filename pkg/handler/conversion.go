@@ -14,10 +14,10 @@ import (
 )
 
 type ConversionHandler struct {
-	conversionService *service.ConversionService
+	conversionService service.ConversionService
 }
 
-func NewConversionHandler(service *service.ConversionService) *ConversionHandler {
+func NewConversionHandler(service service.ConversionService) *ConversionHandler {
 	return &ConversionHandler{
 		conversionService: service,
 	}
