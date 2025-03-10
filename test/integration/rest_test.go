@@ -41,6 +41,8 @@ func TestMain(m *testing.M) {
 		panic("Failed to connect to MongoDB: " + err.Error())
 	}
 
+	cleanup()
+
 	app = api.Setup()
 
 	code := m.Run()
