@@ -57,7 +57,7 @@ func cleanup() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	collection := mongoClient.Database(config.AppConfig.MongoDbName).Collection("conversions")
+	collection := mongoClient.Database(config.AppConfig.MongoDbName).Collection(config.AppConfig.MongoDbCollection)
 	if _, err := collection.DeleteMany(ctx, bson.M{}); err != nil {
 		log.Fatalf("Failed to cleanup conversions collection: %v", err)
 	}

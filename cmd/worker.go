@@ -52,7 +52,7 @@ var WorkerCmd = &cobra.Command{
 
 		worker := rabbitMQWorker.NewWorker(consumer, conversionRepo, storage)
 
-		workerErr := worker.Start(ctx, "conversion_queue")
+		workerErr := worker.Start(ctx, config.AppConfig.RabbitMQQueueName)
 
 		if workerErr != nil {
 			externalLog.Fatalf("Failed when consuming messages: %v", workerErr)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/rabbitmq/amqp091-go"
 
+	config "github.com/wildan3105/converto/configs"
 	"github.com/wildan3105/converto/pkg/logger"
 )
 
@@ -80,7 +81,7 @@ func (cm *ConnectionManager) connect() error {
 	cm.conn.NotifyClose(cm.notifyClose)
 
 	// Setup exchange, queue, and binding
-	if err := cm.SetupExchangeQueueBinding("conversion", "created", "conversion_queue"); err != nil {
+	if err := cm.SetupExchangeQueueBinding(config.AppConfig.RabbitMQExchangeName, config.AppConfig.RabbitMQRoutingKey, config.AppConfig.RabbitMQQueueName); err != nil {
 		log.Error("Failed to setup RabbitMQ components: %v", err)
 		return err
 	}

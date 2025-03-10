@@ -2,9 +2,10 @@ package circuitbreaker
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"time"
+
+	"github.com/wildan3105/converto/pkg/logger"
 )
 
 type State string
@@ -16,6 +17,8 @@ const (
 )
 
 var ErrCircuitBreakerOpen = errors.New("circuit breaker is open")
+
+var log = logger.GetInstance()
 
 type CircuitBreaker struct {
 	mu               sync.Mutex
@@ -43,13 +46,13 @@ func (cb *CircuitBreaker) Execute(fn func() error) error {
 	case Open:
 		if time.Since(cb.lastFailureTime) > cb.cooldownTime {
 			cb.state = HalfOpen
-			fmt.Println("Circuit breaker transitioning to half-open state.")
+			log.Info("Circuit breaker transitioning to half-open state.")
 		} else {
 			cb.mu.Unlock()
 			return ErrCircuitBreakerOpen
 		}
 	case HalfOpen:
-		fmt.Println("Circuit breaker is in half-open state. Trying limited requests.")
+		log.Info("Circuit breaker is in half-open state. Trying limited requests.")
 	}
 
 	cb.mu.Unlock()
@@ -65,7 +68,7 @@ func (cb *CircuitBreaker) Execute(fn func() error) error {
 
 		if cb.failures >= cb.failureThreshold {
 			cb.state = Open
-			fmt.Println("Circuit breaker opened!")
+			log.Info("Circuit breaker opened!")
 		}
 		return err
 	}
@@ -77,5 +80,5 @@ func (cb *CircuitBreaker) Execute(fn func() error) error {
 func (cb *CircuitBreaker) reset() {
 	cb.failures = 0
 	cb.state = Closed
-	fmt.Println("Circuit breaker reset to closed state.")
+	log.Info("Circuit breaker reset to closed state.")
 }

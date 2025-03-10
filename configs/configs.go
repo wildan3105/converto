@@ -10,16 +10,16 @@ import (
 
 // Config holds the environment variables for the app
 type Config struct {
-	Port                       string `envconfig:"PORT" default:"3000"`
-	Environment                string `envconfig:"ENVIRONMENT" default:"local"`
-	MongoURI                   string `envconfig:"MONGO_URI" required:"true"`
-	MongoDbName                string `envconfig:"DB_NAME" required:"true"`
-	RabbitMQURI                string `envconfig:"RABBITMQ_URI" required:"true"`
-	RabbitMQManagementURI      string `envconfig:"RABBITMQ_MANAGEMENT_URI" required:"true"`
-	RabbitMQManagementUser     string `envconfig:"RABBITMQ_MANAGEMENT_USER"`
-	RabbitMQManagementPassword string `envconfig:"RABBITMQ_MANAGEMENT_PASSWORD"`
-	RabbitMQManagementVHost    string `envconfig:"RABBITMQ_MANAGEMENT_VHOST" default:"/"`
-	BaseDirectory              string `envconfig:"BASE_DIRECTORY" required:"true"`
+	Port                 string `envconfig:"PORT" default:"3000"`
+	Environment          string `envconfig:"ENVIRONMENT" default:"local"`
+	MongoURI             string `envconfig:"MONGO_URI" required:"true"`
+	MongoDbName          string `envconfig:"DB_NAME" required:"true"`
+	MongoDbCollection    string `envconfig:"COLLECTION_NAME" required:"true"`
+	RabbitMQURI          string `envconfig:"RABBITMQ_URI" required:"true"`
+	RabbitMQExchangeName string `envconfig:"RABBITMQ_EXCHANGE_NAME" required:"true"`
+	RabbitMQRoutingKey   string `envconfig:"RABBITMQ_ROUTING_KEY" required:"true"`
+	RabbitMQQueueName    string `envconfig:"RABBITMQ_QUEUE_NAME" required:"true"`
+	BaseDirectory        string `envconfig:"BASE_DIRECTORY" required:"true"`
 }
 
 var AppConfig Config

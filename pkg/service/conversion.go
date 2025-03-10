@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	config "github.com/wildan3105/converto/configs"
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/domain"
 	"github.com/wildan3105/converto/pkg/infrastructure/circuitbreaker"
@@ -101,7 +102,7 @@ func (s *ConversionServiceHandler) CreateConversion(ctx context.Context, req *sc
 		UpdatedAt:    conversionPayload.Job.UpdatedAt,
 	}
 
-	publishErr := s.publisher.PublishConversionJob(ctx, event, "conversion", "created")
+	publishErr := s.publisher.PublishConversionJob(ctx, event, config.AppConfig.RabbitMQExchangeName, config.AppConfig.RabbitMQRoutingKey)
 
 	if publishErr != nil {
 		log.Warn("Error when publishing %v", err)
