@@ -2,11 +2,10 @@
 A service to convert .shapr to various format via API
 
 
-## Usage
-### API Documentation
-# API Documentation
+# Usage
+## API Documentation
 
-## File Upload and Conversion
+### File Upload and Conversion
 <details>
 <summary>POST /api/v1/conversions</summary>
 
@@ -31,7 +30,7 @@ Uploads a .shapr file and initiates conversion to specified format. Adds the job
 ```
 </details>
 
-## List All Conversions
+### List All Conversions
 <details>
 <summary>GET /api/v1/conversions</summary>
 
@@ -63,7 +62,7 @@ Retrieves all conversion jobs with their status, progress, and file URLs. Suppor
 ```
 </details>
 
-## Get Conversion by ID
+### Get Conversion by ID
 <details>
 <summary>GET /api/v1/conversions/{conversion_id}</summary>
 
@@ -82,7 +81,7 @@ Retrieves the status and progress of a specific conversion.
 ```
 </details>
 
-## Download Original File
+### Download Original File
 <details>
 <summary>GET /api/v1/conversions/{conversion_id}/files?type=original</summary>
 
@@ -98,7 +97,7 @@ GET /api/v1/conversions/12345/files?type=original
 Returns the original file as raw data in the response body.
 </details>
 
-## Download Converted File
+### Download Converted File
 <details>
 <summary>GET /api/v1/conversions/{conversion_id}/files?type=converted</summary>
 
