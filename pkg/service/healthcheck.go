@@ -9,13 +9,13 @@ import (
 	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
 )
 
-// HealthService provides methods for health checks
+// HealthService is the concrete implementation of dependency health checking
 type HealthService struct {
 	MongoClient    *mongo.Client
 	RabbitMQClient *rabbitmq.ConnectionManager
 }
 
-// NewHealthService returns a new HealthService
+// NewHealthService returns a new HealthService instance
 func NewHealthService(mongoClient *mongo.Client, rabbitMQClient *rabbitmq.ConnectionManager) *HealthService {
 	return &HealthService{
 		MongoClient:    mongoClient,

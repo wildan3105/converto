@@ -24,23 +24,23 @@ type ConversionRepository interface {
 	ListConversions(ctx context.Context, status string, limit, offset int) ([]*domain.Conversion, error)
 }
 
-// MongoConversionRepository represents the MongoDB repository
-type MongoConversionRepository struct {
+// ConversionRepositoryHandler is the concrete implementation of ConversionRepository
+type ConversionRepositoryHandler struct {
 	collection     *mongo.Collection
 	circuitbreaker *circuitbreaker.CircuitBreaker
 }
 
-// NewMongoRepository creates a new instance of MongoRepository
-func NewMongoRepository(mongoClient *mongo.Client, dbName string) *MongoConversionRepository {
+// NewMongoRepository creates a new instance of ConversionRepository
+func NewMongoRepository(mongoClient *mongo.Client, dbName string) *ConversionRepositoryHandler {
 	cb := circuitbreaker.NewCircuitBreaker(3, 10*time.Second) // 3 failures, 10second cooldown
-	return &MongoConversionRepository{
+	return &ConversionRepositoryHandler{
 		collection:     mongoClient.Database(dbName).Collection("conversions"),
 		circuitbreaker: cb,
 	}
 }
 
 // CreateConversion inserts a new conversion document
-func (r *MongoConversionRepository) CreateConversion(ctx context.Context, conversion *domain.Conversion) (string, error) {
+func (r *ConversionRepositoryHandler) CreateConversion(ctx context.Context, conversion *domain.Conversion) (string, error) {
 	ctx, cancel := mongodb.WithTimeout(ctx)
 	defer cancel()
 
@@ -69,7 +69,7 @@ func (r *MongoConversionRepository) CreateConversion(ctx context.Context, conver
 }
 
 // GetConversionByID retrieves a conversion document by ID
-func (r *MongoConversionRepository) GetConversionByID(ctx context.Context, conversionID string) (*domain.Conversion, error) {
+func (r *ConversionRepositoryHandler) GetConversionByID(ctx context.Context, conversionID string) (*domain.Conversion, error) {
 	ctx, cancel := mongodb.WithTimeout(ctx)
 	defer cancel()
 
@@ -85,7 +85,7 @@ func (r *MongoConversionRepository) GetConversionByID(ctx context.Context, conve
 }
 
 // UpdateConversion updates a conversion document by ID
-func (r *MongoConversionRepository) UpdateConversion(ctx context.Context, conversionID string, updateData bson.M) error {
+func (r *ConversionRepositoryHandler) UpdateConversion(ctx context.Context, conversionID string, updateData bson.M) error {
 	ctx, cancel := mongodb.WithTimeout(ctx)
 	defer cancel()
 
@@ -115,7 +115,7 @@ func (r *MongoConversionRepository) UpdateConversion(ctx context.Context, conver
 }
 
 // ListConversions retrieves a list of conversion documents with optional status filtering
-func (r *MongoConversionRepository) ListConversions(ctx context.Context, status string, limit, offset int) ([]*domain.Conversion, error) {
+func (r *ConversionRepositoryHandler) ListConversions(ctx context.Context, status string, limit, offset int) ([]*domain.Conversion, error) {
 	ctx, cancel := mongodb.WithTimeout(ctx)
 	defer cancel()
 

@@ -18,24 +18,34 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var log = logger.GetInstance()
+// ConversionService defines the methods for conversion-related operations
+type ConversionService interface {
+	CreateConversion(ctx context.Context, req *schema.CreateConversionRequest) (schema.CreateConversionResponse, error)
+	ListConversions(ctx context.Context, status string, page, limit int) (schema.ListConversionsResponse, error)
+	GetConversionByID(ctx context.Context, id string) (schema.ConversionResponse, error)
+	GetFileByConversionIdAndType(ctx context.Context, id string, fileType string) (schema.GetFileByConversionId, error)
+}
 
-type ConversionService struct {
+// ConversionServiceHandler is the concrete implementation of ConversionService
+type ConversionServiceHandler struct {
 	repo      repository.ConversionRepository
 	publisher *rabbitmq.Publisher
 	storage   filestorage.FileStorage
 }
 
-func NewConversionService(repo repository.ConversionRepository, publisher *rabbitmq.Publisher, storage filestorage.FileStorage) *ConversionService {
-	return &ConversionService{
+// NewConversionService creates a new instance of ConversionService
+func NewConversionService(repo repository.ConversionRepository, publisher *rabbitmq.Publisher, storage filestorage.FileStorage) *ConversionServiceHandler {
+	return &ConversionServiceHandler{
 		repo:      repo,
 		publisher: publisher,
 		storage:   storage,
 	}
 }
 
+var log = logger.GetInstance()
+
 // CreateConversion creates a conversion
-func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.CreateConversionRequest) (schema.CreateConversionResponse, error) {
+func (s *ConversionServiceHandler) CreateConversion(ctx context.Context, req *schema.CreateConversionRequest) (schema.CreateConversionResponse, error) {
 	convertedFileName := strings.TrimSuffix(req.FileName, ".shapr") + req.TargetFormat
 
 	if req.File == nil {
@@ -106,7 +116,7 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 }
 
 // ListConversions fetches conversions from the repository and maps them to the response schema
-func (s *ConversionService) ListConversions(ctx context.Context, status string, page, limit int) (schema.ListConversionsResponse, error) {
+func (s *ConversionServiceHandler) ListConversions(ctx context.Context, status string, page, limit int) (schema.ListConversionsResponse, error) {
 	offset := (page - 1) * limit
 
 	conversions, err := s.repo.ListConversions(ctx, status, limit, offset)
@@ -135,7 +145,7 @@ func (s *ConversionService) ListConversions(ctx context.Context, status string, 
 }
 
 // GetConversionByID fetches conversion by ID from the repository
-func (s *ConversionService) GetConversionByID(ctx context.Context, id string) (schema.ConversionResponse, error) {
+func (s *ConversionServiceHandler) GetConversionByID(ctx context.Context, id string) (schema.ConversionResponse, error) {
 	conversion, err := s.repo.GetConversionByID(ctx, id)
 	if err != nil {
 		return schema.ConversionResponse{}, err
@@ -154,7 +164,7 @@ func (s *ConversionService) GetConversionByID(ctx context.Context, id string) (s
 }
 
 // GetFileByConversionIdAndType returns the file path and name based on conversion ID and file type
-func (s *ConversionService) GetFileByConversionIdAndType(ctx context.Context, id string, fileType string) (schema.GetFileByConversionId, error) {
+func (s *ConversionServiceHandler) GetFileByConversionIdAndType(ctx context.Context, id string, fileType string) (schema.GetFileByConversionId, error) {
 	conversion, err := s.repo.GetConversionByID(ctx, id)
 	if err != nil {
 		return schema.GetFileByConversionId{
