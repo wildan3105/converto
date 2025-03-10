@@ -13,17 +13,24 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type ConversionHandler struct {
+type ConversionHandler interface {
+	CreateConversion(c *fiber.Ctx) error
+	GetConversions(c *fiber.Ctx) error
+	GetConversionByID(c *fiber.Ctx) error
+	GetFileByConversionId(c *fiber.Ctx) error
+}
+
+type ConversionHandlerManager struct {
 	conversionService service.ConversionService
 }
 
-func NewConversionHandler(service service.ConversionService) *ConversionHandler {
-	return &ConversionHandler{
+func NewConversionHandler(service service.ConversionService) *ConversionHandlerManager {
+	return &ConversionHandlerManager{
 		conversionService: service,
 	}
 }
 
-func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
+func (h *ConversionHandlerManager) CreateConversion(c *fiber.Ctx) error {
 	req := new(schema.CreateConversionRequest)
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -96,7 +103,7 @@ func (h *ConversionHandler) CreateConversion(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(conversion)
 }
 
-func (h *ConversionHandler) GetConversions(c *fiber.Ctx) error {
+func (h *ConversionHandlerManager) GetConversions(c *fiber.Ctx) error {
 	status := c.Query("status")
 
 	if status != "" && !isValidConversionStatus(status) {
@@ -127,7 +134,7 @@ func (h *ConversionHandler) GetConversions(c *fiber.Ctx) error {
 	return c.JSON(conversions)
 }
 
-func (h *ConversionHandler) GetConversionByID(c *fiber.Ctx) error {
+func (h *ConversionHandlerManager) GetConversionByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -153,7 +160,7 @@ func (h *ConversionHandler) GetConversionByID(c *fiber.Ctx) error {
 	return c.JSON(conversion)
 }
 
-func (h *ConversionHandler) GetFileByConversionId(c *fiber.Ctx) error {
+func (h *ConversionHandlerManager) GetFileByConversionId(c *fiber.Ctx) error {
 	id := c.Params("id")
 	fileType := c.Query("type")
 

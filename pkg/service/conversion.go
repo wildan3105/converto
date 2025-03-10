@@ -26,8 +26,6 @@ type ConversionService interface {
 	GetFileByConversionIdAndType(ctx context.Context, id string, fileType string) (schema.GetFileByConversionId, error)
 }
 
-var log = logger.GetInstance()
-
 // ConversionServiceHandler is the concrete implementation of ConversionService
 type ConversionServiceHandler struct {
 	repo      repository.ConversionRepository
@@ -43,6 +41,8 @@ func NewConversionService(repo repository.ConversionRepository, publisher *rabbi
 		storage:   storage,
 	}
 }
+
+var log = logger.GetInstance()
 
 // CreateConversion creates a conversion
 func (s *ConversionServiceHandler) CreateConversion(ctx context.Context, req *schema.CreateConversionRequest) (schema.CreateConversionResponse, error) {
