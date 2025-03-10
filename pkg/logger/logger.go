@@ -23,7 +23,7 @@ func GetInstance() *LoggerService {
 }
 
 // log formats and prints the log message with a timestamp
-func (l *LoggerService) log(level string, format string, args ...interface{}) {
+func (l *LoggerService) log(level string, format string, args ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -34,16 +34,16 @@ func (l *LoggerService) log(level string, format string, args ...interface{}) {
 }
 
 // Info logs an info message with formatting support
-func (l *LoggerService) Info(format string, args ...interface{}) {
+func (l *LoggerService) Info(format string, args ...any) {
 	l.log("INFO", format, args...)
 }
 
 // Warn logs a warning message with formatting support
-func (l *LoggerService) Warn(format string, args ...interface{}) {
+func (l *LoggerService) Warn(format string, args ...any) {
 	l.log("WARN", format, args...)
 }
 
 // Error logs an error message with formatting support
-func (l *LoggerService) Error(format string, args ...interface{}) {
+func (l *LoggerService) Error(format string, args ...any) {
 	l.log("ERROR", format, args...)
 }
