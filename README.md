@@ -1,5 +1,5 @@
 # converto
-A service to convert .shapr to various format via API
+A service to convert a `.shapr` file to various format via API
 
 
 # Usage
@@ -113,23 +113,40 @@ GET /api/v1/conversions/12345/files?type=converted
 Returns the converted file as raw data in the response body.
 </details>
 
-
-
-
-### Options
-TBD
-
 ## Local Development
 ### Requirements
-- Go 1.21 or higher
+- Go `v1.21` or higher
+- Docker with `docker-compose` to provision dependencies
 
 ### Run locally
+1. Provision dependencies: `docker-compose up -d`.
+2. Copy the value in [.env.example](./.env.example) to your own `.env` and adjust the value accordingly.
+3. Run the application
 ```bash
-TBD
+# run server
+go run main.go server
+
+# run worker 
+go run main.go worker
 ```
 
+**Note**
+Default port is `3000`
+
 ### Build Locally
-TBD
+```bash
+# first, build the app
+go build -o app .
+
+# and then run the server and worker in different terminal
+./app server
+./app worker
+```
+
+Alternatively, if you want to start both server and worker in a single command, you could use [forego](https://github.com/ddollar/forego):
+```bash
+forego start # assuming you have installed and configured forego in your system
+```
 
 ### Code Formatting
 ```bash
@@ -146,6 +163,7 @@ golangci-lint run
 ⚠ **WARNING** ⚠
 
 > Test is ran against the local development database. So make sure the data is clean before running the test to ensure its accuracy
+
 > Also ensure the server and worker is running
 
 ```bash
