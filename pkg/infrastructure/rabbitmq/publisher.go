@@ -12,15 +12,15 @@ import (
 
 // Publisher is responsible for publishing messages to RabbitMQ
 type Publisher struct {
-	connManager    *ConnectionManager
-	channel *amqp091.Channel
+	connManager *ConnectionManager
+	channel     *amqp091.Channel
 }
 
 // NewPublisher creates a new Publisher
 func NewPublisher(cm *ConnectionManager) *Publisher {
 	p := &Publisher{
-		connManager:    cm,
-		channel: cm.channel,
+		connManager: cm,
+		channel:     cm.channel,
 	}
 
 	if err := p.enableConfirmMode(); err != nil {

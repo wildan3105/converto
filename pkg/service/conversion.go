@@ -16,6 +16,7 @@ import (
 	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
 	"github.com/wildan3105/converto/pkg/logger"
 	"github.com/wildan3105/converto/pkg/repository"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -107,6 +108,15 @@ func (s *ConversionServiceHandler) CreateConversion(ctx context.Context, req *sc
 
 	if publishErr != nil {
 		log.Warn("Error when publishing %v", err)
+		updateData := bson.M{
+			"conversion.status":       domain.ConversionFailed,
+			"conversion.errorMessage": "failed to publish",
+			"conversion.completedAt":  time.Now(),
+		}
+
+		if err := s.repo.UpdateConversion(ctx, event.ConversionID, updateData); err != nil {
+			log.Warn("Failed to mark conversion as 'failed': %v", err)
+		}
 		return schema.CreateConversionResponse{}, err
 	}
 
