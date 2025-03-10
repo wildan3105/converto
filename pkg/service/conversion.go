@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -9,10 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/domain"
+	"github.com/wildan3105/converto/pkg/infrastructure/circuitbreaker"
 	"github.com/wildan3105/converto/pkg/infrastructure/filestorage"
 	"github.com/wildan3105/converto/pkg/infrastructure/rabbitmq"
 	"github.com/wildan3105/converto/pkg/logger"
 	"github.com/wildan3105/converto/pkg/repository"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var log = logger.GetInstance()
@@ -71,6 +74,12 @@ func (s *ConversionService) CreateConversion(ctx context.Context, req *schema.Cr
 	id, err := s.repo.CreateConversion(ctx, conversionPayload)
 
 	if err != nil {
+		if errors.Is(err, circuitbreaker.ErrCircuitBreakerOpen) {
+			return schema.CreateConversionResponse{}, errors.New("service temporarily unavailable")
+		}
+		if mongo.IsTimeout(err) || errors.Is(err, context.DeadlineExceeded) {
+			return schema.CreateConversionResponse{}, errors.New("database operation timed out")
+		}
 		return schema.CreateConversionResponse{}, err
 	}
 

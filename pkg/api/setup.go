@@ -2,6 +2,7 @@ package api
 
 import (
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -17,7 +18,9 @@ import (
 
 func Setup() *fiber.App {
 	app := fiber.New(fiber.Config{
-		BodyLimit: 1024 * 1024 * 1024, // 1 GB
+		BodyLimit:    1024 * 1024 * 1024, // 1 GB
+		ReadTimeout:  20 * time.Second,
+		WriteTimeout: 20 * time.Second,
 	})
 
 	app.Use(logger.New(logger.Config{

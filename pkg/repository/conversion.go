@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/wildan3105/converto/pkg/domain"
+	"github.com/wildan3105/converto/pkg/infrastructure/circuitbreaker"
+	"github.com/wildan3105/converto/pkg/infrastructure/mongodb"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -24,24 +26,42 @@ type ConversionRepository interface {
 
 // MongoConversionRepository represents the MongoDB repository
 type MongoConversionRepository struct {
-	collection *mongo.Collection
+	collection     *mongo.Collection
+	circuitbreaker *circuitbreaker.CircuitBreaker
 }
 
 // NewMongoRepository creates a new instance of MongoRepository
 func NewMongoRepository(mongoClient *mongo.Client, dbName string) *MongoConversionRepository {
+	cb := circuitbreaker.NewCircuitBreaker(3, 10*time.Second) // 3 failures, 10second cooldown
 	return &MongoConversionRepository{
-		collection: mongoClient.Database(dbName).Collection("conversions"),
+		collection:     mongoClient.Database(dbName).Collection("conversions"),
+		circuitbreaker: cb,
 	}
 }
 
 // CreateConversion inserts a new conversion document
 func (r *MongoConversionRepository) CreateConversion(ctx context.Context, conversion *domain.Conversion) (string, error) {
+	ctx, cancel := mongodb.WithTimeout(ctx)
+	defer cancel()
+
 	conversion.ID = primitive.NewObjectID().Hex()
 	conversion.Job.CreatedAt = time.Now()
 	conversion.Job.UpdatedAt = time.Now()
 
-	_, err := r.collection.InsertOne(ctx, conversion)
+	err := r.circuitbreaker.Execute(func() error {
+		_, err := r.collection.InsertOne(ctx, conversion)
+		if err != nil {
+			if mongo.IsTimeout(err) || errors.Is(err, context.DeadlineExceeded) {
+				fmt.Println("Error: database operation timed out")
+				return errors.New("database operation timed out")
+			}
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
+		fmt.Printf("CreateConversion failed: %v\n", err)
 		return "", err
 	}
 
@@ -50,6 +70,9 @@ func (r *MongoConversionRepository) CreateConversion(ctx context.Context, conver
 
 // GetConversionByID retrieves a conversion document by ID
 func (r *MongoConversionRepository) GetConversionByID(ctx context.Context, conversionID string) (*domain.Conversion, error) {
+	ctx, cancel := mongodb.WithTimeout(ctx)
+	defer cancel()
+
 	var conversion domain.Conversion
 	err := r.collection.FindOne(ctx, bson.M{"_id": conversionID}).Decode(&conversion)
 	if err != nil {
@@ -63,6 +86,9 @@ func (r *MongoConversionRepository) GetConversionByID(ctx context.Context, conve
 
 // UpdateConversion updates a conversion document by ID
 func (r *MongoConversionRepository) UpdateConversion(ctx context.Context, conversionID string, updateData bson.M) error {
+	ctx, cancel := mongodb.WithTimeout(ctx)
+	defer cancel()
+
 	filter := bson.M{"_id": conversionID}
 	update := bson.M{
 		"$set":         updateData,
@@ -90,6 +116,9 @@ func (r *MongoConversionRepository) UpdateConversion(ctx context.Context, conver
 
 // ListConversions retrieves a list of conversion documents with optional status filtering
 func (r *MongoConversionRepository) ListConversions(ctx context.Context, status string, limit, offset int) ([]*domain.Conversion, error) {
+	ctx, cancel := mongodb.WithTimeout(ctx)
+	defer cancel()
+
 	var conversions []*domain.Conversion
 
 	findOptions := options.Find()
