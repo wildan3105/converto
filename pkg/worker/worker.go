@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	externalLog "log"
 
 	"github.com/wildan3105/converto/pkg/api/schema"
 	"github.com/wildan3105/converto/pkg/infrastructure/filestorage"
@@ -21,6 +22,16 @@ type Worker struct {
 
 // NewWorker creates a new Worker instance
 func NewWorker(consumer *rabbitmq.Consumer, repo repository.ConversionRepository, storage filestorage.FileStorage) *Worker {
+	if consumer == nil {
+		externalLog.Fatal("Consumer cannot be nil")
+	}
+	if repo == nil {
+		externalLog.Fatal("ConversionRepository cannot be nil")
+	}
+	if storage == nil {
+		externalLog.Fatal("FileStorage cannot be nil")
+	}
+
 	return &Worker{
 		consumer: consumer,
 		repo:     repo,
