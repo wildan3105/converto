@@ -3,12 +3,13 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
+	config "github.com/wildan3105/converto/configs"
 	"github.com/wildan3105/converto/pkg/domain"
 	"github.com/wildan3105/converto/pkg/infrastructure/circuitbreaker"
 	"github.com/wildan3105/converto/pkg/infrastructure/mongodb"
+	"github.com/wildan3105/converto/pkg/logger"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -30,11 +31,13 @@ type ConversionRepositoryHandler struct {
 	circuitbreaker *circuitbreaker.CircuitBreaker
 }
 
+var log = logger.GetInstance()
+
 // NewMongoRepository creates a new instance of ConversionRepository
 func NewMongoRepository(mongoClient *mongo.Client, dbName string) *ConversionRepositoryHandler {
 	cb := circuitbreaker.NewCircuitBreaker(3, 10*time.Second) // 3 failures, 10second cooldown
 	return &ConversionRepositoryHandler{
-		collection:     mongoClient.Database(dbName).Collection("conversions"),
+		collection:     mongoClient.Database(dbName).Collection(config.AppConfig.MongoDbCollection),
 		circuitbreaker: cb,
 	}
 }
@@ -52,7 +55,7 @@ func (r *ConversionRepositoryHandler) CreateConversion(ctx context.Context, conv
 		_, err := r.collection.InsertOne(ctx, conversion)
 		if err != nil {
 			if mongo.IsTimeout(err) || errors.Is(err, context.DeadlineExceeded) {
-				fmt.Println("Error: database operation timed out")
+				log.Info("Error: database operation timed out")
 				return errors.New("database operation timed out")
 			}
 			return err
@@ -61,7 +64,7 @@ func (r *ConversionRepositoryHandler) CreateConversion(ctx context.Context, conv
 	})
 
 	if err != nil {
-		fmt.Printf("CreateConversion failed: %v\n", err)
+		log.Error("CreateConversion failed: %v\n", err)
 		return "", err
 	}
 
@@ -101,14 +104,14 @@ func (r *ConversionRepositoryHandler) UpdateConversion(ctx context.Context, conv
 	}
 
 	if res.MatchedCount == 0 {
-		fmt.Println("No document matched the provided conversion ID.")
+		log.Info("No document matched the provided conversion ID.")
 		return errors.New("conversion not found")
 	}
 
 	if res.ModifiedCount > 0 {
-		fmt.Println("Successfully updated the conversion document!")
+		log.Info("Successfully updated the conversion document!")
 	} else {
-		fmt.Println("Document found but no update was necessary.")
+		log.Info("Document found but no update was necessary.")
 	}
 
 	return nil
