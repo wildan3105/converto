@@ -54,7 +54,6 @@ func (cb *CircuitBreaker) Execute(fn func() error) error {
 
 	cb.mu.Unlock()
 
-	// Execute the function
 	err := fn()
 
 	cb.mu.Lock()
@@ -71,12 +70,10 @@ func (cb *CircuitBreaker) Execute(fn func() error) error {
 		return err
 	}
 
-	// On success, reset the circuit breaker
 	cb.reset()
 	return nil
 }
 
-// reset brings the circuit breaker to its initial state
 func (cb *CircuitBreaker) reset() {
 	cb.failures = 0
 	cb.state = Closed
