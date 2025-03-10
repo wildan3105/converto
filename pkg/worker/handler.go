@@ -12,6 +12,10 @@ import (
 
 // Handle processes a conversion job
 func (w *Worker) Handle(ctx context.Context, event schema.ConversionEvent) error {
+	if w == nil || w.repo == nil || w.storage == nil {
+		return fmt.Errorf("worker, repository, or storage is nil")
+	}
+
 	conversion, err := w.repo.GetConversionByID(ctx, event.ConversionID)
 	if err != nil {
 		return fmt.Errorf("failed to fetch conversion: %w", err)

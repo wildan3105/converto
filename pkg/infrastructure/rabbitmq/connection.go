@@ -54,8 +54,10 @@ func (cm *ConnectionManager) connect() error {
 	var conn *amqp091.Connection
 	var err error
 
-	for i := 0; i < MaxRetries; i++ {
-		conn, err = amqp091.DialConfig(cm.rabbitURL, amqp091.Config{Heartbeat: HeartbeatTimeout})
+	for i := range MaxRetries {
+		conn, err = amqp091.DialConfig(cm.rabbitURL, amqp091.Config{
+			Heartbeat: time.Duration(HeartbeatTimeout) * time.Second,
+		})
 		if err == nil {
 			break
 		}

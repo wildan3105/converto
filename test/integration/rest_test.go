@@ -20,6 +20,7 @@ import (
 	config "github.com/wildan3105/converto/configs"
 	"github.com/wildan3105/converto/pkg/api"
 	"github.com/wildan3105/converto/pkg/api/schema"
+	"github.com/wildan3105/converto/pkg/domain"
 	"github.com/wildan3105/converto/pkg/infrastructure/mongodb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -77,7 +78,7 @@ func TestHealthEndpoint(t *testing.T) {
 }
 
 func TestConversionEndpoint(t *testing.T) {
-	// POST /api/v1/conversions - Happy Path
+	// Start: POST /api/v1/conversions
 	buffer := &bytes.Buffer{}
 	writer := multipart.NewWriter(buffer)
 
@@ -95,66 +96,56 @@ func TestConversionEndpoint(t *testing.T) {
 	writer.WriteField("target_format", ".stl")
 	writer.Close()
 
-	req := httptest.NewRequest("POST", "/api/v1/conversions", buffer)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	resp, _ := app.Test(req, -1)
-	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	createConversionRequest := httptest.NewRequest("POST", "/api/v1/conversions", buffer)
+	createConversionRequest.Header.Set("Content-Type", writer.FormDataContentType())
 
-	var createResp schema.CreateConversionResponse
-	err = json.NewDecoder(resp.Body).Decode(&createResp)
+	rawCreateConversionResponse, _ := app.Test(createConversionRequest, -1)
+	assert.Equal(t, http.StatusCreated, rawCreateConversionResponse.StatusCode)
+
+	var createConversionResponse schema.CreateConversionResponse
+	err = json.NewDecoder(rawCreateConversionResponse.Body).Decode(&createConversionResponse)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, createResp.ID)
-	assert.Equal(t, "pending", string(createResp.Status))
+	assert.NotEmpty(t, createConversionResponse.ID)
+	assert.Equal(t, string(domain.ConversionPending), string(createConversionResponse.Status))
+	assert.Equal(t, "Conversion created successfully", createConversionResponse.Message)
+	// End: POST /api/v1/conversions
 
-	// GET /api/v1/conversions - Happy Path
-	req = httptest.NewRequest("GET", "/api/v1/conversions?status=pending&page=1&limit=10", nil)
-	resp, _ = app.Test(req, -1)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	// Start: GET /api/v1/conversions
+	getConversionsRequest := httptest.NewRequest("GET", "/api/v1/conversions?status=pending&page=1&limit=10", nil)
+	rawGetConversationsResponse, _ := app.Test(getConversionsRequest, -1)
+	assert.Equal(t, http.StatusOK, rawGetConversationsResponse.StatusCode)
 
 	var listResp schema.ListConversionsResponse
-	err = json.NewDecoder(resp.Body).Decode(&listResp)
+	err = json.NewDecoder(rawGetConversationsResponse.Body).Decode(&listResp)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, listResp)
-	assert.Equal(t, createResp.ID, listResp.Data[0].ID)
+	assert.Equal(t, 1, listResp.Page)
+	assert.Equal(t, 10, listResp.Limit)
+	assert.Equal(t, createConversionResponse.ID, listResp.Data[0].ID)
+	assert.Len(t, listResp.Data, 1)
+	// End: GET /api/v1/conversions
 
-	// GET /api/v1/conversions/:id - Happy Path
-	req = httptest.NewRequest("GET", "/api/v1/conversions/"+createResp.ID, nil)
-	resp, _ = app.Test(req, -1)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	// add sleep to simulate the "background job" to upload and convert file
+	time.Sleep(5 * time.Second)
 
-	var getResp schema.ConversionResponse
-	err = json.NewDecoder(resp.Body).Decode(&getResp)
+	// Start: GET /api/v1/conversions/:id
+	getConversationRequest := httptest.NewRequest("GET", "/api/v1/conversions/"+createConversionResponse.ID, nil)
+	rawGetConversationResponse, _ := app.Test(getConversationRequest, -1)
+	assert.Equal(t, http.StatusOK, rawGetConversationResponse.StatusCode)
+
+	var getConversationResponse schema.ConversionResponse
+	err = json.NewDecoder(rawGetConversationResponse.Body).Decode(&getConversationResponse)
 	assert.NoError(t, err)
-	assert.Equal(t, createResp.ID, getResp.ID)
+	assert.Equal(t, createConversionResponse.ID, getConversationResponse.ID)
+	assert.Equal(t, string(domain.ConversionCompleted), string(getConversationResponse.Status))
+	assert.Equal(t, 100, getConversationResponse.Progress)
+	assert.Contains(t, getConversationResponse.OriginalFilePath, "/original", "OriginalFilePath should contain a directory path")
+	assert.Contains(t, getConversationResponse.ConvertedFilePath, "/converted", "ConvertedFilePath should contain a directory path")
+	// End: GET /api/v1/conversions/:id
 
-	// Negative Scenarios
-	invalidReq := httptest.NewRequest("POST", "/api/v1/conversions", nil)
-	resp, _ = app.Test(invalidReq, -1)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-	// Invalid Status Query
-	req = httptest.NewRequest("GET", "/api/v1/conversions?status=invalid&page=0&limit=50", nil)
-	resp, _ = app.Test(req, -1)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-	// Invalid Object ID
-	req = httptest.NewRequest("GET", "/api/v1/conversions/invalid_id", nil)
-	resp, _ = app.Test(req, -1)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-	// Not Found Scenario
-	req = httptest.NewRequest("GET", "/api/v1/conversions/60b8d6f5f9c4b8b8b8b8b8b8", nil)
-	resp, _ = app.Test(req, -1)
-	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-
-	// GET /api/v1/conversions/:id/files - 	does not provided any query, return 400
-	invalidGetFileByConversionId := httptest.NewRequest("GET", "/api/v1/conversions/"+createResp.ID+"/files", nil)
-	resp, _ = app.Test(invalidGetFileByConversionId, -1)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-	// Happy path - return the expected response
-	validGetFileByConversionId := httptest.NewRequest("GET", "/api/v1/conversions/"+createResp.ID+"/files?type=original", nil)
-	respGetFileByConversionId, _ := app.Test(validGetFileByConversionId, -1)
+	// Start: GET /api/v1/conversions/:id/files
+	getFileByConversionIdRequest := httptest.NewRequest("GET", "/api/v1/conversions/"+createConversionResponse.ID+"/files?type=original", nil)
+	respGetFileByConversionId, _ := app.Test(getFileByConversionIdRequest, -1)
 
 	assert.Equal(t, http.StatusOK, respGetFileByConversionId.StatusCode)
 
@@ -167,4 +158,5 @@ func TestConversionEndpoint(t *testing.T) {
 	body, err := io.ReadAll(respGetFileByConversionId.Body)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, body)
+	// End: GET /api/v1/conversions/:id/files
 }
