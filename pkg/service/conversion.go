@@ -57,6 +57,7 @@ func (s *ConversionServiceHandler) CreateConversion(ctx context.Context, req *sc
 
 	originalFilePath, err := s.storage.SaveFile(req.File, domain.FileCategoryOriginal, fileID, req.FileName)
 	if err != nil {
+		log.Info("Error when saving file: %v", err)
 		return schema.CreateConversionResponse{}, fiber.NewError(fiber.StatusInternalServerError, "Failed to save original file")
 	}
 
