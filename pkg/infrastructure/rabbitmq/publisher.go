@@ -12,15 +12,15 @@ import (
 
 // Publisher is responsible for publishing messages to RabbitMQ
 type Publisher struct {
-	conn    *ConnectionManager
+	connManager    *ConnectionManager
 	channel *amqp091.Channel
 }
 
 // NewPublisher creates a new Publisher
 func NewPublisher(cm *ConnectionManager) *Publisher {
 	p := &Publisher{
-		conn:    cm,
-		channel: cm.GetChannel(),
+		connManager:    cm,
+		channel: cm.channel,
 	}
 
 	if err := p.enableConfirmMode(); err != nil {
@@ -37,12 +37,8 @@ func (p *Publisher) enableConfirmMode() error {
 		return err
 	}
 
-	// Buffered confirmation channel to prevent blocking
-	confirmChan := make(chan amqp091.Confirmation, 100)
-	p.channel.NotifyPublish(confirmChan)
-
 	go func() {
-		for confirmed := range confirmChan {
+		for confirmed := range p.channel.NotifyPublish(make(chan amqp091.Confirmation)) {
 			if confirmed.Ack {
 				log.Info("Message with delivery tag %d confirmed", confirmed.DeliveryTag)
 			} else {
@@ -51,19 +47,8 @@ func (p *Publisher) enableConfirmMode() error {
 		}
 	}()
 
-	// Monitor RabbitMQ channel flow control
-	flowChan := p.channel.NotifyFlow(make(chan bool))
-	go func() {
-		for flow := range flowChan {
-			if !flow {
-				log.Warn("Channel flow is blocked by RabbitMQ")
-			} else {
-				log.Info("Channel flow is unblocked")
-			}
-		}
-	}()
-
 	log.Info("Enabling confirm mode")
+
 	return nil
 }
 
@@ -84,11 +69,21 @@ func (p *Publisher) PublishConversionJob(ctx context.Context, conversionEvent sc
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
+	mandatory := true
+	returnCh := make(chan amqp091.Return)
+	p.channel.NotifyReturn(returnCh)
+
+	go func() {
+		for returned := range returnCh {
+			log.Warn("Message returned: %s", returned.ReplyText)
+		}
+	}()
+
 	err = p.channel.PublishWithContext(
 		ctx,
 		exchange,
 		routingKey,
-		false, // mandatory should be false to avoid blocking on unroutable messages
+		mandatory,
 		false, // immediate
 		amqp091.Publishing{
 			DeliveryMode: amqp091.Persistent,
@@ -115,7 +110,7 @@ func (p *Publisher) PublishConversionJob(ctx context.Context, conversionEvent sc
 // reOpenChannel attempts to re-open the RabbitMQ channel
 func (p *Publisher) reOpenChannel() error {
 	var err error
-	p.channel, err = p.conn.conn.Channel()
+	p.channel, err = p.connManager.conn.Channel()
 	if err != nil {
 		return err
 	}
