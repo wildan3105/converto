@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// ConversionHandler defines the handler interface for conversion-related endpoints.
 type ConversionHandler interface {
 	CreateConversion(c *fiber.Ctx) error
 	GetConversions(c *fiber.Ctx) error
@@ -20,16 +21,20 @@ type ConversionHandler interface {
 	GetFileByConversionId(c *fiber.Ctx) error
 }
 
+// ConversionHandlerManager implements the ConversionHandler interface.
 type ConversionHandlerManager struct {
 	conversionService service.ConversionService
 }
 
+// NewConversionHandler creates a new instance of ConversionHandlerManager.
 func NewConversionHandler(service service.ConversionService) *ConversionHandlerManager {
 	return &ConversionHandlerManager{
 		conversionService: service,
 	}
 }
 
+// CreateConversion handles the creation of a new conversion job.
+// Validates the input, checks file type and format, and triggers the conversion service.
 func (h *ConversionHandlerManager) CreateConversion(c *fiber.Ctx) error {
 	req := new(schema.CreateConversionRequest)
 	if err := c.BodyParser(req); err != nil {
@@ -103,6 +108,7 @@ func (h *ConversionHandlerManager) CreateConversion(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(conversion)
 }
 
+// GetConversions handles fetching a paginated list of conversions, filtered by status.
 func (h *ConversionHandlerManager) GetConversions(c *fiber.Ctx) error {
 	status := c.Query("status")
 
@@ -134,6 +140,7 @@ func (h *ConversionHandlerManager) GetConversions(c *fiber.Ctx) error {
 	return c.JSON(conversions)
 }
 
+// GetConversionByID handles fetching a single conversion by its ID.
 func (h *ConversionHandlerManager) GetConversionByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -160,6 +167,7 @@ func (h *ConversionHandlerManager) GetConversionByID(c *fiber.Ctx) error {
 	return c.JSON(conversion)
 }
 
+// GetFileByConversionId handles fetching a file associated with a specific conversion
 func (h *ConversionHandlerManager) GetFileByConversionId(c *fiber.Ctx) error {
 	id := c.Params("id")
 	fileType := c.Query("type")
