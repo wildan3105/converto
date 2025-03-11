@@ -155,8 +155,12 @@ golangci-lint run
 ```
 
 ### ✅ Run Tests
+
+⚠️ **Caution**
+
+The tests run against the local development database and will delete all data within it. Additionally, any files inside BASE_DIRECTORY will be permanently removed. Ensure that no important files are stored there before running the tests.
+
 ```bash
-# Warning: Tests run against local development database
 # Ensure both server and worker are running
 
 go test ./...
