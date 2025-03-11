@@ -44,10 +44,10 @@ Deployment Plan for 3D Model Conversion Service
 
 1. API Gateway & Load Balancer
 
-- **Service**: Amazon API Gateway + AWS Application Load Balancer (ALB)
+- **Service**: Amazon API Gateway + AWS Application Load Balancer
 
 - **Purpose**:
-    - User authentication (e.g., using Cognito or custom auth)
+    - User authentication
     - Routing requests to the File Service
     - Rate limiting and throttling to prevent abuse
 
@@ -140,7 +140,7 @@ Deployment Plan for 3D Model Conversion Service
     - Secure access to S3, DocumentDB, and RabbitMQ
 
 - **Data Protection**:
-    - S3 server-side encryption (SSE-S3 or SSE-KMS)
+    - S3 server-side encryption
     - Enable encryption at rest for DocumentDB
     - Use HTTPS for all API communications
 
@@ -157,8 +157,6 @@ Deployment Plan for 3D Model Conversion Service
 
 - **MongoDB**: Automated backups via DocumentDB
 
-- **S3**: Versioning and cross-region replication (optional)
-
 - **Infrastructure as Code**: Store configurations in AWS CloudFormation or Terraform to enable rapid recovery
 
 #### Operating the Service
@@ -169,7 +167,7 @@ Deployment Plan for 3D Model Conversion Service
 - Establish runbooks for incident response and troubleshooting
 
 ## Future Improvements
-The deployment strategy outlined above sets a solid foundation for a production-ready 3D model conversion service. However, there are several opportunities to further enhance the application's robustness, scalability, and efficiency:
+The deployment strategy outlined above sets a solid foundation for a production-ready 3D model conversion service. However, there are several opportunities to further enhance the application's robustness, scalability, and efficiency based on the current app's state:
 
 1) **Current File Handling with Filesystem**
 - **Reason:** For simplicity, the current implementation uses the local filesystem to store both original and converted files.
