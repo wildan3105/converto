@@ -171,3 +171,6 @@ go clean -testcache
 
 ### 📍 Default Port
 - Server runs on: `http://localhost:3000`
+
+### 🤖 Miscellaneous
+For detailed architecture, deployment strategy, and future improvements, please take a look [here](./docs/README.md)
