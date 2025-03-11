@@ -158,7 +158,7 @@ golangci-lint run
 
 ⚠️ **Caution**
 
-The tests run against the local development database and will delete all data within it. Additionally, any files inside BASE_DIRECTORY will be permanently removed. Ensure that no important files are stored there before running the tests.
+The tests run against the local development database and will delete all data within it. Additionally, any files inside [`BASE_DIRECTORY`](.env.example) will be permanently removed. Ensure that no important files are stored there before running the tests.
 
 ```bash
 # Ensure both server and worker are running
