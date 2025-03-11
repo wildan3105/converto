@@ -126,6 +126,9 @@ Copy `.env.example` to `.env` and update values as needed.
 
 3. **Run Application:**
 ```bash
+# Install dependencies
+go get ./...
+
 # Start server
 go run main.go server
 
