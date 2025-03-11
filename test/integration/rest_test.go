@@ -62,6 +62,10 @@ func cleanup() {
 	if _, err := collection.DeleteMany(ctx, bson.M{}); err != nil {
 		log.Fatalf("Failed to cleanup conversions collection: %v", err)
 	}
+
+	if err := os.RemoveAll(config.AppConfig.BaseDirectory); err != nil {
+		log.Fatalf("Failed to remove base directory %s: %v", config.AppConfig.BaseDirectory, err)
+	}
 }
 
 // TestHealthEndpoint tests the health check endpoint
