@@ -2,6 +2,9 @@
 Convert `.shapr` files to various formats via API.
 
 ---
+## 📼 Demo
+![demo](./docs/demovideo.webm)
+
 ## 📑 API Documentation
 
 ### 📂 File Upload & Conversion
