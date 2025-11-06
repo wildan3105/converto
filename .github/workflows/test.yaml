@@ -46,6 +46,6 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: latest
-          args: run ./...
+          args: ./...
       - name: test
         run: go test -v -cover ./test/integration -race
