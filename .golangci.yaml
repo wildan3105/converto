@@ -16,6 +16,7 @@ linters:
     - misspell
     - gocritic
     - whitespace
+    - gochecknoglobals
 
 linters-settings:
   gofmt:
