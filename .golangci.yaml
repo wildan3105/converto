@@ -1,29 +1,5 @@
-version: 1
-
-run:
-  timeout: 5m
-  tests: false        
-  concurrency: 2
+version: "2"
 
 linters:
   enable:
-    - govet
-    - errcheck
-    - staticcheck
-    - gosimple
-    - unused
-    - typecheck
-    - ineffassign
-    - gofmt
-    - misspell
-    - gocritic
-    - whitespace
-    - gochecknoglobals
-
-linters-settings:
-  gofmt:
-    simplify: true
-
-issues:
-  max-same-issues: 10
-  exclude-use-default: true
+    - gochecknoglobals # checks for usage of global variables
